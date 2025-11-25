@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mobile_app/modules/home/home_screen.dart';
+import 'package:gstu_cse/modules/home/home_screen.dart';
 import 'dashboard_controller.dart';
 import '../routine/routine_screen.dart';
 import '../profile/profile_screen.dart';
