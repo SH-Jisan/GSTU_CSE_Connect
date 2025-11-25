@@ -1,0 +1,20 @@
+### ১. নতুন স্টুডেন্ট রেজিস্ট্রেশন (Signup Test)
+POST http://localhost:3000/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Rahim Uddin",
+  "email": "rahim@gstucse.com",
+  "password": "pass123",
+  "role": "student",
+  "student_id": "2019001"
+}
+
+### ২. লগইন টেস্ট (Login Test)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "rahim@gstucse.com",
+  "password": "pass123"
+}
