@@ -15,6 +15,6 @@ class ApiConstants {
   static const String pendingUsersEndpoint = "$baseUrl/staff/pending";
   static const String approveUserEndpoint = "$baseUrl/staff/approve";
   static const String rejectUserEndpoint = "$baseUrl/staff/reject";
-
+  static const String addRoutineEndpoint = "$baseUrl/routines/add";
 
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gstu_cse/modules/notice/add_notice_screen.dart';
+import 'package:gstu_cse/modules/staff/update_routine_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
 import 'pending_requests_screen.dart';
@@ -43,7 +44,9 @@ class StaffDashboard extends StatelessWidget {
               icon: Icons.upload_file,
               title: "Update\nRoutine",
               color: Colors.orange,
-              onTap: () => Get.snackbar("Upcoming", "Routine update coming next!"),
+              onTap: (){
+                Get.to(() => UpdateRoutineScreen());
+              }
             ),
             _buildMenuCard(
               icon: Icons.grade,

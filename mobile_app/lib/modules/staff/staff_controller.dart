@@ -16,6 +16,90 @@ class StaffController extends GetxController {
   final descController = TextEditingController();
   var selectedCategory = 'General'.obs;
 
+  // Routine Form Controllers
+  final courseCodeCtrl = TextEditingController();
+  final courseTitleCtrl = TextEditingController();
+  final teacherEmailCtrl = TextEditingController();
+  final roomCtrl = TextEditingController();
+
+  var selectedSemester = '1st Year 1st Sem'.obs;
+  var selectedDay = 'Sunday'.obs;
+
+  // somoy rakhar jnno
+  var startTime = TimeOfDay(hour:10, minute: 0).obs;
+  var endTime = TimeOfDay(hour: 11, minute: 30).obs;
+
+  //time picker function
+  Future<void> pickTime(BuildContext context , bool isStart) async{
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: isStart ? startTime.value : endTime.value,
+    );
+    if(picked != null){
+      if(isStart) {
+        startTime.value = picked;
+      } else {
+        endTime.value = picked;
+      }
+    }
+  }
+
+  // routine add korar function
+  void addClassRoutine() async{
+    if(courseCodeCtrl.text.isEmpty || teacherEmailCtrl.text.isEmpty){
+      Get.snackbar("Error" , "Please fill all fields",
+        backgroundColor: Color.fromARGB(155, 246, 6, 15),
+        colorText: Colors.white,
+      );
+      return;
+    }
+    try{
+      isLoading.value = true;
+
+      // time format kora (10:00 Am style pathano)
+      String startStr = "${startTime.value.hour}:${startTime.value.minute}";
+      String endStr = "${endTime.value.hour}:${endTime.value.minute}";
+
+      var response = await http.post(
+        Uri.parse(ApiConstants.addRoutineEndpoint),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "semester": selectedSemester.value,
+          "course_code": courseCodeCtrl.text,
+          "course_title": courseTitleCtrl.text,
+          "teacher_email": teacherEmailCtrl.text.trim(), // টিচারের ইমেইল
+          "room_no": roomCtrl.text,
+          "day": selectedDay.value,
+          "start_time": startStr,
+          "end_time": endStr,
+        }),
+      );
+      if(response.statusCode == 200){
+        Get.snackbar("Success", "Class Added to Routine!",
+          backgroundColor: Color.fromARGB(174, 9, 228, 17),
+          colorText: Colors.white,
+        );
+        courseCodeCtrl.clear();
+        courseTitleCtrl.clear();
+        roomCtrl.clear();
+        Get.back();
+      }
+      else{
+        var error = jsonDecode(response.body);
+        Get.snackbar("Failed", error['error'] ?? "Something went wrong",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    }
+    catch(e){
+      Get.snackbar("Error", "Check internet connection");
+    }
+    finally{
+      isLoading.value = false;
+    }
+  }
+
   // পেন্ডিং লিস্ট লোড করা
   void fetchPendingUsers() async {
     // ⚠️ ফিক্স ২: ডাটা আনা শুরু করার সময় লোডিং অন করো

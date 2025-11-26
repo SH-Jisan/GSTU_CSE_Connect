@@ -59,3 +59,32 @@ exports.toggleClassStatus = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+// 🆕 নতুন ক্লাস যোগ করার ফাংশন
+exports.addRoutine = async (req, res) => {
+    const { semester, course_code, course_title, teacher_email, room_no, day, start_time, end_time } = req.body;
+
+    try {
+        // ১. টিচারের ইমেইল দিয়ে টিচারের ID খুঁজে বের করা
+        const teacherRes = await pool.query("SELECT id FROM users WHERE email = $1", [teacher_email]);
+
+        if (teacherRes.rows.length === 0) {
+            return res.status(404).json({ error: "Teacher email not found!" });
+        }
+
+        const teacher_id = teacherRes.rows[0].id;
+
+        // ২. রুটিন টেবিল-এ ডাটা ঢুকানো
+        const newRoutine = await pool.query(
+            `INSERT INTO routines (semester, course_code, course_title, teacher_id, room_no, day, start_time, end_time)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [semester, course_code, course_title, teacher_id, room_no, day, start_time, end_time]
+        );
+
+        res.json({ message: "Class Added Successfully!", routine: newRoutine.rows[0] });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
