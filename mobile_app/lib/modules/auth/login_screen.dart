@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gstu_cse/modules/auth/signup_screen.dart';
 import 'auth_controller.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -73,6 +74,24 @@ class LoginScreen extends StatelessWidget {
                   ),
                   child: const Text("Login", style: TextStyle(fontSize: 18, color: Colors.white)),
                 )),
+
+                const SizedBox(height: 20),
+                //signup link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children:[
+                    const Text("Don't Have An Account?"),
+                    TextButton(
+                      onPressed: () {
+                        Get.to(() => SignUpScreen());
+                      },
+                      child: const Text("Sign Up" , style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
