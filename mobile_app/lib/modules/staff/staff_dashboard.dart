@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gstu_cse/modules/notice/add_notice_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
 import 'pending_requests_screen.dart';
@@ -54,7 +55,9 @@ class StaffDashboard extends StatelessWidget {
               icon: Icons.campaign,
               title: "Post\nNotice",
               color: Colors.blue,
-              onTap: () => Get.snackbar("Upcoming", "Notice post coming next!"),
+              onTap: () {
+                Get.to(() => AddNoticeScreen());
+              },
             ),
           ],
         ),
