@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gstu_cse/modules/notice/add_notice_screen.dart';
 import 'package:gstu_cse/modules/staff/update_routine_screen.dart';
+import 'package:gstu_cse/modules/staff/upload_result_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_screen.dart';
 import 'pending_requests_screen.dart';
@@ -52,7 +53,9 @@ class StaffDashboard extends StatelessWidget {
               icon: Icons.grade,
               title: "Upload\nResult",
               color: Colors.teal,
-              onTap: () => Get.snackbar("Upcoming", "Result upload coming next!"),
+              onTap: (){
+                Get.to(() => UploadResultScreen());
+              },
             ),
             _buildMenuCard(
               icon: Icons.campaign,

@@ -7,6 +7,6 @@ const {
 
 // POST মেথড কারণ আমরা বডিতে ইমেইল পাঠাবো
 router.post('/', getMyResults);
-router.post('/', addResult);
+router.post('/add', addResult);
 
 module.exports = router;
