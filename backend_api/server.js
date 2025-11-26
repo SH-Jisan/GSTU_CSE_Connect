@@ -9,6 +9,7 @@ const noticeRoutes = require('./src/routes/noticeRoutes');
 const routineRoutes = require('./src/routes/routineRoutes');
 const resultRoutes = require('./src/routes/resultRoutes');
 const teacherRoutes = require('./src/routes/teacherRoutes');
+const staffRoutes = require('./src/routes/staffRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ app.use('/api/notices', noticeRoutes);
 app.use('/api/routines' , routineRoutes);
 app.use('/api/results' , resultRoutes);
 app.use('/api/teachers' , teacherRoutes);
+app.use('/api/staff', staffRoutes);
 
 // Database Test (Optional)
 const pool = new Pool({

@@ -60,10 +60,10 @@ exports.loginUser = async (req, res) => {
 
         // ৩. চেক করা অ্যাডমিন অ্যাপ্রুভ করেছে কিনা
         // (টেস্টিংয়ের জন্য আপাতত এটা অফ রাখছি, পরে অন করব)
-        /* if (!user.rows[0].is_approved) {
-            return res.status(403).json({ error: 'Account not approved yet!' });
+         if (!user.rows[0].is_approved) {
+            return res.status(403).json({ error: 'Account pending!Please contact office staff!' });
         }
-        */
+
 
         // ৪. টোকেন জেনারেট করা (এটি দিয়ে অ্যাপ ইউজারকে চিনবে)
         const token = jwt.sign(

@@ -12,5 +12,9 @@ class ApiConstants {
   static const String resultEndpoint = "$baseUrl/results";
   static const String teacherEndpoint = "$baseUrl/teachers";
   static const String cancelClassEndpoint = "$baseUrl/routines/cancel";
+  static const String pendingUsersEndpoint = "$baseUrl/staff/pending";
+  static const String approveUserEndpoint = "$baseUrl/staff/approve";
+  static const String rejectUserEndpoint = "$baseUrl/staff/reject";
+
 
 }
