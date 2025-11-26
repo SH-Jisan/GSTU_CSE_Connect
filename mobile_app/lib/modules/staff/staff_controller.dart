@@ -38,6 +38,12 @@ class StaffController extends GetxController {
   final examYearCtrl = TextEditingController();
   final gradeCtrl = TextEditingController();
   var resultSemester = '1st Year 1st Sem'.obs;
+  var studentList = [].obs;     // সব স্টুডেন্টের লিস্ট
+  var filteredStudents = [].obs; // সার্চ করার পর যেটা থাকবে
+  // ... ক্লাসের ভেরিয়েবল সেকশনে ...
+  var selectedStudentResults = [].obs; // সিলেক্ট করা স্টুডেন্টের রেজাল্ট
+
+
 
   // result upload function
   // 🎓 Rezult Upload Function (Updated)
@@ -313,5 +319,155 @@ class StaffController extends GetxController {
     } finally {
       isLoading.value = false; // লোডিং শেষ
     }
+  }
+
+  // 📋 সব স্টুডেন্ট লোড করা
+  void fetchAllStudents() async {
+    isLoading(true);
+    try {
+      var response = await http.get(Uri.parse(ApiConstants.allStudentsEndpoint));
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body) as List;
+        studentList.value = data;
+        filteredStudents.value = data; // শুরুতে সব দেখাবে
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Could not fetch students");
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  // 🔍 সার্চ ফাংশন
+  void filterStudents(String query) {
+    if (query.isEmpty) {
+      filteredStudents.value = studentList;
+    } else {
+      filteredStudents.value = studentList.where((student) {
+        return student['name'].toString().toLowerCase().contains(query.toLowerCase()) ||
+            student['student_id'].toString().contains(query);
+      }).toList();
+    }
+  }
+
+  // 🗑️ রেজাল্ট ডিলিট ফাংশন
+  Future<bool> deleteResult(int id) async {
+    try {
+      var response = await http.delete(Uri.parse("${ApiConstants.resultEndpoint}/$id"));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 📥 নির্দিষ্ট স্টুডেন্টের রেজাল্ট আনা
+  void fetchStudentResults(String email) async {
+    try {
+      isLoading(true);
+      var response = await http.post(
+        Uri.parse(ApiConstants.resultEndpoint), // আগের রেজাল্ট দেখার API-ই ব্যবহার করব
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"email": email}),
+      );
+
+      if (response.statusCode == 200) {
+        selectedStudentResults.value = jsonDecode(response.body);
+      } else {
+        selectedStudentResults.clear();
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Could not fetch results");
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  // 🗑️ রেজাল্ট ডিলিট ফাংশন
+  void deleteResultAPI(int id, String studentEmail) async {
+    Get.defaultDialog(
+        title: "Delete Result?",
+        middleText: "Are you sure? This cannot be undone.",
+        textConfirm: "Yes, Delete",
+        textCancel: "Cancel",
+        confirmTextColor: Colors.white,
+        onConfirm: () async {
+          Get.back(); // ডায়ালগ বন্ধ
+          try {
+            var response = await http.delete(Uri.parse("${ApiConstants.resultEndpoint}/$id"));
+            if (response.statusCode == 200) {
+              Get.snackbar("Deleted", "Result removed successfully");
+              fetchStudentResults(studentEmail); // লিস্ট রিফ্রেশ
+            }
+          } catch (e) {
+            Get.snackbar("Error", "Failed to delete");
+          }
+        }
+    );
+  }
+
+  // ✏️ রেজাল্ট এডিট ডায়ালগ
+  void showEditResultDialog(Map result, String studentEmail) {
+    final codeCtrl = TextEditingController(text: result['course_code']);
+    final gpaCtrl = TextEditingController(text: result['gpa'].toString());
+    final gradeCtrl = TextEditingController(text: result['grade']);
+
+    Get.dialog(
+        Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Update Result", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.indigo)),
+                  const SizedBox(height: 20),
+                  TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: "Course Code", border: OutlineInputBorder())),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: gpaCtrl, decoration: const InputDecoration(labelText: "GPA", border: OutlineInputBorder()))),
+                      const SizedBox(width: 10),
+                      Expanded(child: TextField(controller: gradeCtrl, decoration: const InputDecoration(labelText: "Grade", border: OutlineInputBorder()))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(child: OutlinedButton(onPressed: () => Get.back(), child: const Text("Cancel"))),
+                      const SizedBox(width: 10),
+                      Expanded(child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+                          onPressed: () async {
+                            Get.back();
+                            // API Call
+                            try {
+                              var response = await http.put(
+                                Uri.parse("${ApiConstants.resultEndpoint}/${result['id']}"),
+                                headers: {"Content-Type": "application/json"},
+                                body: jsonEncode({
+                                  "course_code": codeCtrl.text,
+                                  "gpa": double.parse(gpaCtrl.text),
+                                  "grade": gradeCtrl.text
+                                }),
+                              );
+                              if (response.statusCode == 200) {
+                                Get.snackbar("Success", "Result Updated");
+                                fetchStudentResults(studentEmail); // রিফ্রেশ
+                              }
+                            } catch (e) {
+                              Get.snackbar("Error", "Update Failed");
+                            }
+                          },
+                          child: const Text("Update", style: TextStyle(color: Colors.white))
+                      )),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        )
+    );
   }
 }

@@ -52,3 +52,37 @@ exports.addResult = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+// ✏️ Result Update Function
+exports.updateResult = async (req, res) => {
+    const { id } = req.params; // রেজাল্ট ID
+    const { course_code, gpa, grade } = req.body; // নতুন ডাটা
+
+    try {
+        const update = await pool.query(
+            "UPDATE results SET course_code = $1, gpa = $2, grade = $3 WHERE id = $4 RETURNING *",
+            [course_code, gpa, grade, id]
+        );
+
+        if (update.rows.length === 0) {
+            return res.status(404).json({ error: "Result not found" });
+        }
+
+        res.json({ message: "Result Updated", result: update.rows[0] });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
+// 🗑️ Result Delete Function
+exports.deleteResult = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query("DELETE FROM results WHERE id = $1", [id]);
+        res.json({ message: "Result Deleted Successfully" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};

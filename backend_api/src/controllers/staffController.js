@@ -40,3 +40,16 @@ exports.rejectUser = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+// 📋 সব স্টুডেন্টের লিস্ট (Search Directory এর জন্য)
+exports.getAllStudents = async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT id, name, email, student_id, session, avatar_url FROM users WHERE role = 'student' ORDER BY student_id ASC"
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};

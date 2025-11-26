@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gstu_cse/modules/staff/student_directory_screen.dart';
 import 'pending_requests_screen.dart';
 import '../notice/add_notice_screen.dart';
 import 'update_routine_screen.dart';
@@ -49,6 +50,14 @@ class StaffDashboard extends StatelessWidget {
                   title: "Post\nNotice",
                   color: Colors.blue,
                   onTap: () => Get.to(() => AddNoticeScreen()),
+                ),
+                _buildMenuCard(
+                  icon: Icons.people_alt,
+                  title: "Student\nDirectory",
+                  color: Colors.indigo,
+                  onTap: (){
+                    Get.to(() => StudentDirectoryScreen());
+                  },
                 ),
               ],
             ),

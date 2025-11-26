@@ -3,10 +3,14 @@ const router = express.Router();
 const {
     getMyResults,
     addResult,
+    updateResult,
+    deleteResult,
 } = require('../controllers/resultController');
 
 // POST মেথড কারণ আমরা বডিতে ইমেইল পাঠাবো
 router.post('/', getMyResults);
 router.post('/add', addResult);
+router.put('/:id', updateResult);
+router.delete('/:id', deleteResult);
 
 module.exports = router;
