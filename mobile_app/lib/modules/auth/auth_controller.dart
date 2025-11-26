@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gstu_cse/modules/staff/staff_dashboard.dart';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,12 +62,7 @@ class AuthController extends GetxController {
           backgroundColor: Color.fromARGB(161, 16, 227, 101), colorText: Colors.black87);
 
           String role = data['user']['role'];
-          if(role == 'staff'){
-            Get.offAll(() => const StaffDashboard());
-          }
-          else{
-            Get.offAll(() => const DashboardScreen());
-          }
+          Get.offAll(() => const DashboardScreen());
         }
 
       } else {

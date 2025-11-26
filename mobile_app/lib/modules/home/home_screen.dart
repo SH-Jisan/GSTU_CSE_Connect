@@ -67,7 +67,14 @@ class HomeScreen extends StatelessWidget {
                             )
                           ],
                         ),
-                      ),
+                        trailing: controller.userRole.value == 'staff'
+                      ? IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => controller.deleteNotice(notice['id']),
+                    )
+                        : const SizedBox(),
+
+                    ),
                     );
                   },
                 );

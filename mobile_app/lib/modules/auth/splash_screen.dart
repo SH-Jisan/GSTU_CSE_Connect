@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import '../home/dashboard_screen.dart';
-import '../staff/staff_dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -29,12 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
     String? role = prefs.getString('userRole');
 
     if (token != null && token.isNotEmpty) {
-      if(role == 'staff'){
-        Get.offAll(() => const StaffDashboard());
-      }
-      else{
-        Get.offAll(() => const DashboardScreen());
-      }
+      Get.offAll(() => const DashboardScreen());
     } else {
       // না থাকলে লগইনে যাও
       Get.offAll(() => LoginScreen());

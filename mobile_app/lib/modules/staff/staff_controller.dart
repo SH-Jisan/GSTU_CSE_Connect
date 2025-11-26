@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_constants.dart';
+import '../home/home_controller.dart';
 
 class StaffController extends GetxController {
   var pendingList = [].obs;
@@ -273,6 +274,13 @@ class StaffController extends GetxController {
           margin: const EdgeInsets.all(10),
           duration: const Duration(seconds: 2),
         );
+
+        if(Get.isRegistered<HomeController>()){
+          Get.find<HomeController>().fetchNotices();
+        }
+        else{
+          Get.put(HomeController()).fetchNotices();
+        }
 
         titleController.clear();
         descController.clear();

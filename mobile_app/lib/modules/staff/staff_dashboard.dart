@@ -1,72 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gstu_cse/modules/notice/add_notice_screen.dart';
-import 'package:gstu_cse/modules/staff/update_routine_screen.dart';
-import 'package:gstu_cse/modules/staff/upload_result_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../auth/login_screen.dart';
 import 'pending_requests_screen.dart';
+import '../notice/add_notice_screen.dart';
+import 'update_routine_screen.dart';
+import 'upload_result_screen.dart';
 
 class StaffDashboard extends StatelessWidget {
   const StaffDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Office Staff Panel"),
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              Get.offAll(() => LoginScreen());
-            },
-          )
+    // Scaffold আর AppBar সরিয়ে দিয়েছি
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          const Text(
+              "Admin Control Panel",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey)
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 15,
+              mainAxisSpacing: 15,
+              children: [
+                _buildMenuCard(
+                  icon: Icons.verified_user,
+                  title: "Approve\nSignups",
+                  color: Colors.purple,
+                  onTap: () => Get.to(() => PendingRequestsScreen()),
+                ),
+                _buildMenuCard(
+                  icon: Icons.upload_file,
+                  title: "Update\nRoutine",
+                  color: Colors.orange,
+                  onTap: () => Get.to(() => UpdateRoutineScreen()),
+                ),
+                _buildMenuCard(
+                  icon: Icons.grade,
+                  title: "Upload\nResult",
+                  color: Colors.teal,
+                  onTap: () => Get.to(() => UploadResultScreen()),
+                ),
+                _buildMenuCard(
+                  icon: Icons.campaign,
+                  title: "Post\nNotice",
+                  color: Colors.blue,
+                  onTap: () => Get.to(() => AddNoticeScreen()),
+                ),
+              ],
+            ),
+          ),
         ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: GridView.count(
-          crossAxisCount: 2, // ২ কলাম
-          crossAxisSpacing: 15,
-          mainAxisSpacing: 15,
-          children: [
-            _buildMenuCard(
-              icon: Icons.verified_user,
-              title: "Approve\nSignups",
-              color: Colors.purple,
-              onTap: () => Get.to(() => PendingRequestsScreen()),
-            ),
-            _buildMenuCard(
-              icon: Icons.upload_file,
-              title: "Update\nRoutine",
-              color: Colors.orange,
-              onTap: (){
-                Get.to(() => UpdateRoutineScreen());
-              }
-            ),
-            _buildMenuCard(
-              icon: Icons.grade,
-              title: "Upload\nResult",
-              color: Colors.teal,
-              onTap: (){
-                Get.to(() => UploadResultScreen());
-              },
-            ),
-            _buildMenuCard(
-              icon: Icons.campaign,
-              title: "Post\nNotice",
-              color: Colors.blue,
-              onTap: () {
-                Get.to(() => AddNoticeScreen());
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -83,7 +70,7 @@ class StaffDashboard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 50, color: color),
+            Icon(icon, size: 40, color: color),
             const SizedBox(height: 10),
             Text(title, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
           ],

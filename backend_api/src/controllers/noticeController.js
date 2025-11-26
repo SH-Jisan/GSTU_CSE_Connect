@@ -33,3 +33,16 @@ exports.addNotice = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+
+// 🗑️ Notice Delete Function
+exports.deleteNotice = async (req, res) => {
+    const { id } = req.params; // URL theke ID nibo
+    try {
+        await pool.query("DELETE FROM notices WHERE id = $1", [id]);
+        res.json({ message: "Notice Deleted Successfully" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
