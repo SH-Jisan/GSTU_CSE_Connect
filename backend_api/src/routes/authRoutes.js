@@ -11,6 +11,6 @@ const {
 router.post('/signup', registerUser); // লিংক হবে: /api/auth/signup
 router.post('/login', loginUser);     // লিংক হবে: /api/auth/login
 router.post('/profile' , getUserProfile);
-router.put('/update', updateProfile);
+router.put('/update', updateProfile); // এই লাইনটি থাকতেই হবে
 
 module.exports = router;

@@ -39,7 +39,10 @@ class EditProfileSheet extends StatelessWidget {
             GetBuilder<ProfileController>(
                 builder: (ctrl) {
                   return GestureDetector(
-                    onTap: () => ctrl.pickImage(), // ছবি সিলেক্ট করার ফাংশন
+                    onTap: () {
+                      print("🔘 Avatar Tapped! Opening Gallery...");
+                      ctrl.pickImage();
+                    },// ছবি সিলেক্ট করার ফাংশন
                     child: Stack(
                       alignment: Alignment.bottomRight,
                       children: [

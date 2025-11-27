@@ -15,47 +15,64 @@ class ProfileController extends GetxController {
   File? selectedImage;
   String? base64Image;
 
-  Future<void> pickImage() async{
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-    if(image != null){
-      selectedImage = File(image.path);
-
-      List<int> imageBytes = await selectedImage!.readAsBytes();
-      base64Image = "data:image/jpeg;base63,${base64Encode(imageBytes)}";
-
-      update();
-      Get.snackbar("Selected", "Image selected successfully!");
-    }
-  }
-
-
 
   @override
   void onInit() {
     fetchProfile();
     super.onInit();
   }
-// ✏️ প্রোফাইল আপডেট ফাংশন (Image Update Fix)
+  // 📸 গ্যালারি থেকে ছবি নেওয়া (Debugged)
+  Future<void> pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        selectedImage = File(image.path);
+
+        // Base64 কনভার্সন
+        List<int> imageBytes = await selectedImage!.readAsBytes();
+        base64Image = "data:image/jpeg;base64,${base64Encode(imageBytes)}";
+
+        // 🕵️ ডিবাগ প্রিন্ট: ছবি সিলেক্ট হয়েছে কিনা
+        print("📸 IMAGE SELECTED!");
+        print("📸 Path: ${image.path}");
+        print("📸 Base64 String Length: ${base64Image?.length}"); // এটা যদি 0 বা null হয়, তবেই সমস্যা
+
+        update(); // UI আপডেট করার জন্য (GetBuilder এর জন্য জরুরি)
+      } else {
+        print("⚠️ No image selected (User cancelled)");
+      }
+    } catch (e) {
+      print("❌ Image Picker Error: $e");
+      Get.snackbar("Error", "Could not pick image");
+    }
+  }
+
+  // ✏️ প্রোফাইল আপডেট ফাংশন (Debugged)
   void updateProfile(String name, String designation) async {
     try {
       isLoading(true);
+
       final prefs = await SharedPreferences.getInstance();
       int? userId = prefs.getInt('userId');
 
-      // ডিবাগ প্রিন্ট
-      print("🚀 FRONTEND SENDING REQUEST...");
+      // 🕵️ পাঠানোর আগে ফাইনাল চেক
+      print("🚀 PREPARING TO SEND DATA...");
       print("🆔 User ID: $userId");
-      print("📸 Base64 Image is Null? : ${base64Image == null}");
+      print("📸 Is Base64 Null?: ${base64Image == null}");
+
       if (base64Image != null) {
-        print("📸 Base64 String Length: ${base64Image!.length}");
+        print("📸 Sending Image Data Length: ${base64Image!.length}");
+      } else {
+        print("⚠️ WARNING: Sending Request WITHOUT Image!");
       }
 
       var bodyData = {
         "id": userId,
         "name": name,
         "designation": designation,
+        // যদি null না হয়, তবেই ম্যাপে যোগ হবে
         if (base64Image != null) "image_base64": base64Image,
       };
 
@@ -65,23 +82,27 @@ class ProfileController extends GetxController {
         body: jsonEncode(bodyData),
       );
 
-      print("📥 Server Response Code: ${response.statusCode}");
-      print("📥 Server Response Body: ${response.body}");
+      print("📥 Server Response: ${response.body}");
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        userData.value = data['user'];
+        var updatedUser = data['user'];
+
+        userData.value = updatedUser;
+        await prefs.setString('userName', updatedUser['name']);
+
+        // সফল হওয়ার পর ইমেজ ভেরিয়েবল রিসেট করো
         selectedImage = null;
         base64Image = null;
-        await prefs.setString('userName', data['user']['name']);
 
-        Get.snackbar("Success", "Profile Updated!");
+        Get.snackbar("Success", "Profile Updated! 📸", backgroundColor: Colors.green, colorText: Colors.white);
         Get.back();
       } else {
         Get.snackbar("Error", "Update Failed");
       }
     } catch (e) {
-      print("❌ APP ERROR: $e");
+      print("❌ Error: $e");
+      Get.snackbar("Error", "Connection Error");
     } finally {
       isLoading(false);
     }
