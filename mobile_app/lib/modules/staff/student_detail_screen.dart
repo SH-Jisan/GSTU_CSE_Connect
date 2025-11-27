@@ -1,3 +1,4 @@
+//D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\staff\student_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
