@@ -1,6 +1,7 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
 // ডাটাবেস কানেকশন (SSL সহ)
@@ -9,6 +10,11 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 // 🟢 1. SIGNUP Logic
 exports.registerUser = async (req, res) => {
     const { name, email, password, role, student_id } = req.body;
@@ -80,8 +86,6 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-// ... আগের কোড ...
-
 // 🟡 3. GET PROFILE Logic
 exports.getUserProfile = async (req, res) => {
     const { email } = req.body; // অ্যাপ থেকে ইমেইল আসবে
@@ -101,6 +105,78 @@ exports.getUserProfile = async (req, res) => {
 
     } catch (err) {
         console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};
+
+// profile update function(with image)
+// ✏️ Profile Update Function (Fixed & Debugged)
+exports.updateProfile = async (req, res) => {
+    // 1. ডাটা রিসিভ
+    const { id, name, designation } = req.body;
+    let image_base64 = req.body.image_base64;
+
+    console.log("📥 Update Request Received for User ID:", id);
+    console.log("📝 Data:", { name, designation, hasImage: !!image_base64 });
+
+    try {
+        // 2. আইডি চেক
+        if (!id) {
+            console.log("❌ Error: User ID is missing!");
+            return res.status(400).json({ error: "User ID is required" });
+        }
+
+        let avatar_url = req.body.avatar_url; // ডিফল্ট (যদি ইমেজ না আসে)
+
+        // 3. ইমেজ আপলোড লজিক (যদি থাকে)
+        if (image_base64) {
+            console.log("📸 Uploading image to Cloudinary...");
+            try {
+                const uploadRes = await cloudinary.uploader.upload(image_base64, {
+                    upload_preset: 'ml_default',
+                    folder: 'gstu_cse_profiles'
+                });
+                avatar_url = uploadRes.secure_url;
+                console.log("✅ Image Uploaded:", avatar_url);
+            } catch (imgErr) {
+                console.error("❌ Cloudinary Error:", imgErr);
+                // ইমেজ ফেল করলেও টেক্সট আপডেট হবে, তাই রিটার্ন করছি না
+            }
+        }
+
+        // 4. ডাটাবেস কুয়েরি (SQL)
+        // আমরা এখানে COALESCE ব্যবহার করব না, সরাসরি লজিক দিয়ে আপডেট করব
+        // যদি avatar_url না থাকে, তবে আগেরটাই রাখতে চাই। কিন্তু SQL এ সেটা হ্যান্ডেল করা কঠিন।
+        // তাই আমরা ২টি আলাদা কুয়েরি বা লজিক ব্যবহার করতে পারি।
+        // তবে সহজ সমাধানের জন্য: আমরা ধরে নিচ্ছি অ্যাপ আগের URL পাঠাবে না হলে আমরা আপডেট করব না।
+
+        // সবচাইতে সেইফ কুয়েরি:
+        let query = "UPDATE users SET name = $1, designation = $2";
+        let params = [name, designation];
+        let paramIndex = 3;
+
+        // যদি নতুন ছবি থাকে তবেই URL আপডেট করব
+        if (avatar_url) {
+            query += `, avatar_url = $${paramIndex}`;
+            params.push(avatar_url);
+            paramIndex++;
+        }
+
+        query += ` WHERE id = $${paramIndex} RETURNING *`;
+        params.push(id);
+
+        const update = await pool.query(query, params);
+
+        if (update.rows.length === 0) {
+            console.log("❌ Error: User not found in DB");
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        console.log("✅ Database Updated Successfully");
+        res.json({ message: "Profile Updated", user: update.rows[0] });
+
+    } catch (err) {
+        console.error("❌ Server Error:", err.message);
         res.status(500).json({ error: "Server Error" });
     }
 };

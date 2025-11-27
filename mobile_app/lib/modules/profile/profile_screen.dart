@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'profile_controller.dart';
+import 'edit_profile_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   final ProfileController controller = Get.put(ProfileController());
@@ -12,12 +13,35 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("My Profile"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_square, color: Colors.blueAccent),
+            onPressed: (){
+              var user = controller.userData;
+              Get.bottomSheet(
+                EditProfileSheet(
+                  currentName: user['name'] ?? "",
+                  currentDesig: user['designation'] ?? "",
+                ),
+                isScrollControlled: true,
+              );
+            }
+          ),
+        ],
+      ),
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
 
         var user = controller.userData;
+        String? imgUrl = user['avatar_url'];
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -30,10 +54,15 @@ class ProfileScreen extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.blueAccent.withOpacity(0.2),
-                  child: Text(
+                  backgroundImage: (imgUrl != null && imgUrl.isNotEmpty)
+                      ? NetworkImage(imgUrl) // নতুন URL আসলে এখানে অটোমেটিক চেঞ্জ হবে
+                      : null,
+                  child: (imgUrl == null || imgUrl.isEmpty)
+                      ? Text(
                     user['name'] != null ? user['name'][0].toUpperCase() : "U",
                     style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.blueAccent),
-                  ),
+                  )
+                      : null,
                 ),
               ),
               const SizedBox(height: 16),

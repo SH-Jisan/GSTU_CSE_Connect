@@ -27,6 +27,8 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true; // লোডিং শুরু
 
+      print("🚀 Logging in with: ${emailController.text}");
+
       var response = await http.post(
         Uri.parse(ApiConstants.loginEndpoint),
         headers: {"Content-Type": "application/json"},
@@ -36,11 +38,22 @@ class AuthController extends GetxController {
         }),
       );
 
+      print("📥 Login Response Code: ${response.statusCode}");
+      print("📥 Login Body: ${response.body}"); // এখানে দেখব সার্ভার কী পাঠাচ্ছে
+
       // যদি রেসপন্স ঠিক থাকে (Status 200)
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        var token = data['token'];
-        var userName = data['user']['name'];
+        String token = data['token'];
+        var user = data['user'];
+
+        // ⚠️ এই জায়গাটাতেই সমস্যা ছিল সম্ভবত
+        int userId = user['id'];
+        String userName = user['name'];
+        String userEmail = user['email'];
+        String userRole = user['role'];
+
+        print("✅ Parsed Data -> ID: $userId, Name: $userName, Role: $userRole");
 
         Get.snackbar("Success", "Welcome back, $userName!",
             backgroundColor: Colors.green, colorText: Colors.white);
@@ -56,12 +69,14 @@ class AuthController extends GetxController {
           await prefs.setString('token' , token);
           await prefs.setString('userName' , userName);
           await prefs.setString('userEmail' , userEmail);
-          await prefs.setString('userRole', data['user']['role']); //role save korlam
+          await prefs.setString('userRole', userRole); //role save korlam
+          await prefs.setInt('userId', userId);
+
+          print("💾 Saved ID to Prefs: ${prefs.getInt('userId')}");
 
           Get.snackbar("Success" , "Welcome back , $userName!",
           backgroundColor: Color.fromARGB(161, 16, 227, 101), colorText: Colors.black87);
 
-          String role = data['user']['role'];
           Get.offAll(() => const DashboardScreen());
         }
 

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const bodyParser = require('body-parser');
 
 // রুট ইম্পোর্ট
 const authRoutes = require('./src/routes/authRoutes');
@@ -18,6 +19,9 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json()); // JSON ডাটা রিসিভ করার জন্য
 
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(cors());
 // Routes ব্যবহার করা
 
 // সব Auth রিকোয়েস্ট এখানে আসবে
