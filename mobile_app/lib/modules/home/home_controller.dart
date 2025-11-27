@@ -4,16 +4,23 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 
 class HomeController extends GetxController {
   var noticeList = [].obs; // নোটিস লিস্ট
   var isLoading = true.obs; // লোডিং অবস্থা
   var userName = "".obs; // ইউজারের নাম
   var userRole = "".obs;
+  final box = GetStorage();
 
   @override
   void onInit() {
     loadUserData();
+    var savedNotices = box.read('notices');
+    if(savedNotices != null){
+      noticeList.value = savedNotices;
+      isLoading(false);
+    }
     fetchNotices();
     super.onInit();
   }
@@ -26,10 +33,14 @@ class HomeController extends GetxController {
 
   void fetchNotices() async {
     try {
-      isLoading(true);
+      if(noticeList.isEmpty) {
+        isLoading(true);
+      }
       var response = await http.get(Uri.parse(ApiConstants.noticeEndpoint));
       if (response.statusCode == 200) {
-        noticeList.value = jsonDecode(response.body);
+        var data = jsonDecode(response.body);
+        noticeList.value = data;
+        box.write('notices', data);
       }
     } catch (e) {
       Get.snackbar("Error", "Could not fetch notices");

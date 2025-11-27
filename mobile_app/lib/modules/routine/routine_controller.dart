@@ -3,15 +3,22 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 
 class RoutineController extends GetxController {
   var routineList = [].obs;
   var isLoading = true.obs;
   var userRole = "".obs;
+  final box = GetStorage();
 
   @override
   void onInit() {
     getUserRole();
+    var savedRoutine = box.read('routine');
+    if(savedRoutine != null){
+      routineList.value = savedRoutine;
+      isLoading(false);
+    }
     fetchRoutine();
     super.onInit();
   }
@@ -37,10 +44,14 @@ class RoutineController extends GetxController {
 
   void fetchRoutine() async {
     try {
-      isLoading(true);
+      if(routineList.isEmpty){
+        isLoading(true);
+      }
       var response = await http.get(Uri.parse(ApiConstants.routineEndpoint));
       if (response.statusCode == 200) {
-        routineList.value = jsonDecode(response.body);
+        var data = jsonDecode(response.body);
+        routineList.value = data;
+        box.write('routine', data);
       }
     } catch (e) {
       Get.snackbar("Error", "Could not fetch routine");
