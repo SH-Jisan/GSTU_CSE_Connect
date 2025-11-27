@@ -17,7 +17,7 @@ cloudinary.config({
 });
 // 🟢 1. SIGNUP Logic
 exports.registerUser = async (req, res) => {
-    const { name, email, password, role, student_id } = req.body;
+    const { name, email, password, role, student_id, designation} = req.body;
 
     try {
         // ১. চেক করি ইউজার আগে থেকেই আছে কিনা
@@ -32,9 +32,10 @@ exports.registerUser = async (req, res) => {
 
         // ৩. ডাটাবেসে সেভ করা (ডিফল্টভাবে is_approved = false থাকবে)
         const newUser = await pool.query(
-            'INSERT INTO users (name, email, password_hash, role, student_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role',
-            [name, email, hashedPassword, role, student_id]
-        );
+                    `INSERT INTO users (name, email, password_hash, role, student_id, designation, is_approved)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+                    [name, email, hashedPassword, role, student_id, designation, false] // <--- Force FALSE
+                );
 
         res.status(201).json({
             message: 'Registration successful! Please wait for Admin approval.',
@@ -60,15 +61,12 @@ exports.loginUser = async (req, res) => {
 
         // ২. পাসওয়ার্ড মেলানো
         const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
-        if (!validPassword) {
-            return res.status(400).json({ error: 'Invalid Email or Password' });
-        }
 
-        // ৩. চেক করা অ্যাডমিন অ্যাপ্রুভ করেছে কিনা
-        // (টেস্টিংয়ের জন্য আপাতত এটা অফ রাখছি, পরে অন করব)
-         if (!user.rows[0].is_approved) {
-            return res.status(403).json({ error: 'Account pending!Please contact office staff!' });
-        }
+        if (user.rows[0].is_approved === false) {
+                    return res.status(403).json({ error: 'Account Pending! Please wait for Staff approval.' });
+                }
+
+
 
 
         // ৪. টোকেন জেনারেট করা (এটি দিয়ে অ্যাপ ইউজারকে চিনবে)
