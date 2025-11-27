@@ -41,13 +41,15 @@ class ProfileController extends GetxController {
   void updateProfile(String name, String designation) async {
     try {
       isLoading(true);
-
       final prefs = await SharedPreferences.getInstance();
       int? userId = prefs.getInt('userId');
 
-      if (userId == null) {
-        Get.snackbar("Error", "Session Expired. Login again.");
-        return;
+      // ডিবাগ প্রিন্ট
+      print("🚀 FRONTEND SENDING REQUEST...");
+      print("🆔 User ID: $userId");
+      print("📸 Base64 Image is Null? : ${base64Image == null}");
+      if (base64Image != null) {
+        print("📸 Base64 String Length: ${base64Image!.length}");
       }
 
       var bodyData = {
@@ -63,37 +65,27 @@ class ProfileController extends GetxController {
         body: jsonEncode(bodyData),
       );
 
-      print("📥 Server Response: ${response.body}");
+      print("📥 Server Response Code: ${response.statusCode}");
+      print("📥 Server Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
-        // ১. সার্ভার থেকে আপডেটেড ইউজার ডাটা নিলাম
         var data = jsonDecode(response.body);
-        var updatedUser = data['user'];
-
-        // ২. লোকাল মেমোরি (Observable) আপডেট করলাম (যাতে সাথে সাথে UI চেঞ্জ হয়)
-        userData.value = updatedUser;
-
-        // ৩. টেম্পোরারি ইমেজ ক্লিয়ার করলাম
+        userData.value = data['user'];
         selectedImage = null;
         base64Image = null;
+        await prefs.setString('userName', data['user']['name']);
 
-        // ৪. SharedPreferences-এও নাম আপডেট করে দিই
-        await prefs.setString('userName', updatedUser['name']);
-
-        Get.snackbar("Success", "Profile Updated Successfully! 📸", backgroundColor: Colors.green, colorText: Colors.white);
-
-        Get.back(); // শিট বন্ধ
+        Get.snackbar("Success", "Profile Updated!");
+        Get.back();
       } else {
         Get.snackbar("Error", "Update Failed");
       }
     } catch (e) {
-      print("❌ Error: $e");
-      Get.snackbar("Error", "Connection Error");
+      print("❌ APP ERROR: $e");
     } finally {
       isLoading(false);
     }
   }
-
   // 📥 প্রোফাইল ডাটা লোড করা
   void fetchProfile() async {
     final prefs = await SharedPreferences.getInstance();

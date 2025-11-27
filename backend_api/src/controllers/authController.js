@@ -108,75 +108,67 @@ exports.getUserProfile = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
-
-// profile update function(with image)
-// ✏️ Profile Update Function (Fixed & Debugged)
+// ✏️ Profile Update Function (Deep Debug Mode)
 exports.updateProfile = async (req, res) => {
-    // 1. ডাটা রিসিভ
     const { id, name, designation } = req.body;
     let image_base64 = req.body.image_base64;
 
-    console.log("📥 Update Request Received for User ID:", id);
-    console.log("📝 Data:", { name, designation, hasImage: !!image_base64 });
+    console.log("------------------------------------------------");
+    console.log("📥 PROFILE UPDATE REQUEST RECEIVED");
+    console.log("🆔 User ID:", id);
+    console.log("📝 Text Data:", { name, designation });
+
+    // ইমেজ আসছে কিনা চেক
+    if (image_base64) {
+        console.log("📸 Image Base64 Length:", image_base64.length);
+        console.log("📸 Image Preview:", image_base64.substring(0, 30) + "...");
+    } else {
+        console.log("⚠️ No Image Data Received from App!");
+    }
 
     try {
-        // 2. আইডি চেক
-        if (!id) {
-            console.log("❌ Error: User ID is missing!");
-            return res.status(400).json({ error: "User ID is required" });
-        }
+        let avatar_url = req.body.avatar_url; // আগের URL (যদি থাকে)
 
-        let avatar_url = req.body.avatar_url; // ডিফল্ট (যদি ইমেজ না আসে)
-
-        // 3. ইমেজ আপলোড লজিক (যদি থাকে)
+        // 1. Cloudinary Upload Attempt
         if (image_base64) {
-            console.log("📸 Uploading image to Cloudinary...");
+            console.log("☁️ Attempting Cloudinary Upload...");
             try {
                 const uploadRes = await cloudinary.uploader.upload(image_base64, {
                     upload_preset: 'ml_default',
                     folder: 'gstu_cse_profiles'
                 });
-                avatar_url = uploadRes.secure_url;
-                console.log("✅ Image Uploaded:", avatar_url);
-            } catch (imgErr) {
-                console.error("❌ Cloudinary Error:", imgErr);
-                // ইমেজ ফেল করলেও টেক্সট আপডেট হবে, তাই রিটার্ন করছি না
+
+                if (uploadRes && uploadRes.secure_url) {
+                    avatar_url = uploadRes.secure_url;
+                    console.log("✅ Cloudinary Success! New URL:", avatar_url);
+                } else {
+                    console.log("❌ Cloudinary Uploaded but returned no URL.");
+                }
+            } catch (cloudErr) {
+                console.error("❌ CLOUDINARY UPLOAD FAILED:", cloudErr);
+                // আমরা এখানে থামব না, দেখব কেন ফেইল হলো
             }
         }
 
-        // 4. ডাটাবেস কুয়েরি (SQL)
-        // আমরা এখানে COALESCE ব্যবহার করব না, সরাসরি লজিক দিয়ে আপডেট করব
-        // যদি avatar_url না থাকে, তবে আগেরটাই রাখতে চাই। কিন্তু SQL এ সেটা হ্যান্ডেল করা কঠিন।
-        // তাই আমরা ২টি আলাদা কুয়েরি বা লজিক ব্যবহার করতে পারি।
-        // তবে সহজ সমাধানের জন্য: আমরা ধরে নিচ্ছি অ্যাপ আগের URL পাঠাবে না হলে আমরা আপডেট করব না।
+        // 2. Database Update Attempt
+        console.log("💾 Updating Database with URL:", avatar_url);
 
-        // সবচাইতে সেইফ কুয়েরি:
-        let query = "UPDATE users SET name = $1, designation = $2";
-        let params = [name, designation];
-        let paramIndex = 3;
-
-        // যদি নতুন ছবি থাকে তবেই URL আপডেট করব
-        if (avatar_url) {
-            query += `, avatar_url = $${paramIndex}`;
-            params.push(avatar_url);
-            paramIndex++;
-        }
-
-        query += ` WHERE id = $${paramIndex} RETURNING *`;
-        params.push(id);
-
-        const update = await pool.query(query, params);
+        // ডাইনামিক কুয়েরি (যাতে ভুল না হয়)
+        const update = await pool.query(
+            "UPDATE users SET name = $1, designation = $2, avatar_url = $3 WHERE id = $4 RETURNING *",
+            [name, designation, avatar_url, id]
+        );
 
         if (update.rows.length === 0) {
-            console.log("❌ Error: User not found in DB");
+            console.log("❌ DB Error: User ID not found during update.");
             return res.status(404).json({ error: "User not found" });
         }
 
-        console.log("✅ Database Updated Successfully");
+        console.log("✅ Database Updated. Returning User:", update.rows[0]);
         res.json({ message: "Profile Updated", user: update.rows[0] });
 
     } catch (err) {
-        console.error("❌ Server Error:", err.message);
-        res.status(500).json({ error: "Server Error" });
+        console.error("❌ SERVER CRASH ERROR:", err.message);
+        res.status(500).json({ error: "Server Error: " + err.message });
     }
 };
