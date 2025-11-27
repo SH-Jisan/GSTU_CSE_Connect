@@ -24,6 +24,7 @@ const resultRoutes = require('./src/routes/resultRoutes');
 const teacherRoutes = require('./src/routes/teacherRoutes');
 const staffRoutes = require('./src/routes/staffRoutes');
 const courseRoutes = require('./src/routes/courseRoutes');
+const materialRoutes = require('./src/routes/materialRoutes');
 
 // ===== Routes =====
 app.use('/api/auth', authRoutes);
@@ -33,6 +34,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/materials', materialRoutes);
 
 // ===== Database Connection =====
 const pool = new Pool({

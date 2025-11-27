@@ -20,4 +20,6 @@ class ApiConstants {
   static const String addRoutineEndpoint = "$baseUrl/routines/add";
   static const String addResultEndpoint = "$baseUrl/results/add";
   static const String allStudentsEndpoint = "$baseUrl/staff/students";
+  static const String materialEndpoint = "$baseUrl/materials";
+  static const String courseListEndpoint = "$baseUrl/courses";
 }

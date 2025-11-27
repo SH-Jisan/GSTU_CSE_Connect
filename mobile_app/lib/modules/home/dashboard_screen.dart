@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../material/screens/public_course_list_screen.dart';
 import 'dashboard_controller.dart';
 import 'home_screen.dart';
 import '../routine/routine_screen.dart';
@@ -87,10 +88,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.book),
-              title: const Text("Course Materials"),
-              onTap: (){
-                Get.back();
-                Get.snackbar("Coming Soon", "Feature under development");
+              title: const Text('Course Materials'),
+              onTap: () {
+                Get.back(); // ড্রয়ার বন্ধ
+                // ⚠️ নতুন স্ক্রিনে নিয়ে যাও
+                Get.to(() => PublicCourseListScreen());
               },
             ),
             const Divider(),
