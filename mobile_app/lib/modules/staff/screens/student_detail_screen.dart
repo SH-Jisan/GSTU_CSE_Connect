@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'staff_controller.dart';
+import '../controllers/staff_result_controller.dart';
 
 // ⚠️ Change: StatelessWidget থেকে StatefulWidget করা হলো
 class StudentDetailScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class StudentDetailScreen extends StatefulWidget {
 }
 
 class _StudentDetailScreenState extends State<StudentDetailScreen> {
-  final StaffController controller = Get.find();
+  final StaffResultController controller = Get.put(StaffResultController());
 
   @override
   void initState() {
@@ -47,10 +47,25 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   radius: 30,
                   backgroundColor: Colors.indigo,
                   // নামের প্রথম অক্ষর দেখানো
-                  child: Text(
+                  backgroundImage: (widget.student['avatar_url'] != null && widget.student['avatar_url'].toString().isNotEmpty)
+                      ? NetworkImage(widget.student['avatar_url'])
+                      : null,
+
+                  // ⚠️ Fix: যদি ছবি লোড না হয় বা না থাকে, তবে নাম দেখাবে
+                  child: (widget.student['avatar_url'] == null || widget.student['avatar_url'].toString().isEmpty)
+                      ? Text(
                     widget.student['name'][0].toString().toUpperCase(),
                     style: const TextStyle(fontSize: 24, color: Colors.white),
-                  ),
+                  )
+                      : null,
+
+                  // ⚠️ Optional: ছবি লোড করতে গিয়ে এরর হলে হ্যান্ডেল করা
+                  onBackgroundImageError: (_, _) {
+                    Text(
+                      widget.student['name'][0].toString().toUpperCase(),
+                      style: const TextStyle(fontSize: 24, color: Colors.white),
+                    );
+                  },
                 ),
                 const SizedBox(width: 15),
                 Column(

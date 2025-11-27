@@ -1,11 +1,12 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\staff\staff_dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gstu_cse/modules/staff/student_directory_screen.dart';
-import 'pending_requests_screen.dart';
+import 'package:gstu_cse/modules/staff/screens/course_list_screen.dart';
+import 'package:gstu_cse/modules/staff/screens/student_directory_screen.dart';
+import 'screens/pending_requests_screen.dart';
 import '../notice/add_notice_screen.dart';
-import 'update_routine_screen.dart';
-import 'upload_result_screen.dart';
+import 'screens/update_routine_screen.dart';
+import 'screens/upload_result_screen.dart';
 
 class StaffDashboard extends StatelessWidget {
   const StaffDashboard({super.key});
@@ -59,6 +60,12 @@ class StaffDashboard extends StatelessWidget {
                   onTap: (){
                     Get.to(() => StudentDirectoryScreen());
                   },
+                ),
+                _buildMenuCard(
+                  icon: Icons.library_books,
+                  title: "Course\nManager",
+                  color: Colors.brown,
+                  onTap: () => Get.to(() => CourseListScreen()),
                 ),
               ],
             ),

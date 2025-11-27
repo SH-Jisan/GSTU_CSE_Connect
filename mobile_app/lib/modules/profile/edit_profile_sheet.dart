@@ -1,4 +1,5 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\profile\edit_profile_sheet.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'profile_controller.dart';
@@ -41,7 +42,9 @@ class EditProfileSheet extends StatelessWidget {
                 builder: (ctrl) {
                   return GestureDetector(
                     onTap: () {
-                      print("🔘 Avatar Tapped! Opening Gallery...");
+                      if (kDebugMode) {
+                        print("🔘 Avatar Tapped! Opening Gallery...");
+                      }
                       ctrl.pickImage();
                     },// ছবি সিলেক্ট করার ফাংশন
                     child: Stack(

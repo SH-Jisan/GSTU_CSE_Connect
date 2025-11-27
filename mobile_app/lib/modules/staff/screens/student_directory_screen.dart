@@ -1,12 +1,12 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\staff\student_directory_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gstu_cse/modules/staff/student_detail_screen.dart';
-import 'staff_controller.dart';
+import 'package:gstu_cse/modules/staff/screens/student_detail_screen.dart';
+import '../controllers/staff_student_controller.dart';
 // import 'student_detail_screen.dart'; // এটা আমরা পরের ধাপে বানাবো
 
 class StudentDirectoryScreen extends StatelessWidget {
-  final StaffController controller = Get.put(StaffController());
+  final StaffStudentController controller = Get.put(StaffStudentController());
 
   StudentDirectoryScreen({super.key}) {
     // পেজে ঢুকেই লিস্ট লোড করবে

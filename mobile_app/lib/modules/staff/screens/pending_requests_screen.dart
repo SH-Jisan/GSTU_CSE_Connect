@@ -1,10 +1,10 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\staff\pending_requests_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'staff_controller.dart';
+import '../controllers/staff_student_controller.dart';
 
 class PendingRequestsScreen extends StatelessWidget {
-  final StaffController controller = Get.put(StaffController());
+  final StaffStudentController controller = Get.put(StaffStudentController());
 
   PendingRequestsScreen({super.key}) {
     controller.fetchPendingUsers(); // পেজে ঢুকেই লোড করবে

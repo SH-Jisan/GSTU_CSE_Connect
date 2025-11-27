@@ -1,10 +1,10 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\notice\add_notice_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../staff/staff_controller.dart';
+import '../staff/controllers/staff_notice_controller.dart';
 
 class AddNoticeScreen extends StatelessWidget {
-  final StaffController controller = Get.put(StaffController()); // আগের কন্ট্রোলারই ব্যবহার করব
+  final StaffNoticeController controller = Get.put(StaffNoticeController()); // আগের কন্ট্রোলারই ব্যবহার করব
 
   AddNoticeScreen({super.key});
 

@@ -23,6 +23,7 @@ const routineRoutes = require('./src/routes/routineRoutes');
 const resultRoutes = require('./src/routes/resultRoutes');
 const teacherRoutes = require('./src/routes/teacherRoutes');
 const staffRoutes = require('./src/routes/staffRoutes');
+const courseRoutes = require('./src/routes/courseRoutes');
 
 // ===== Routes =====
 app.use('/api/auth', authRoutes);
@@ -31,6 +32,7 @@ app.use('/api/routines', routineRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/staff', staffRoutes);
+app.use('/api/courses', courseRoutes);
 
 // ===== Database Connection =====
 const pool = new Pool({

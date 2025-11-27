@@ -1,10 +1,9 @@
-//D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\staff\update_routine_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'staff_controller.dart';
+import '../controllers/staff_routine_controller.dart';
 
 class UpdateRoutineScreen extends StatelessWidget {
-  final StaffController controller = Get.put(StaffController());
+  final StaffRoutineController controller = Get.put(StaffRoutineController());
 
   UpdateRoutineScreen({super.key});
 
@@ -15,27 +14,64 @@ class UpdateRoutineScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Semester Dropdown
-            _buildDropdown("Select Semester", controller.selectedSemester, [
-              '1st Year 1st Sem', '1st Year 2nd Sem',
-              '2nd Year 1st Sem', '2nd Year 2nd Sem',
-              '3rd Year 1st Sem', '3rd Year 2nd Sem',
-              '4th Year 1st Sem', '4th Year 2nd Sem',
-            ]),
-
-            // 2. Day Dropdown
+            // 1. Day Dropdown (এটা রাখা দরকার)
             _buildDropdown("Select Day", controller.selectedDay, [
               'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'
             ]),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
-            // 3. Text Fields
-            _buildTextField(controller.courseCodeCtrl, "Course Code (e.g. CSE-101)"),
-            _buildTextField(controller.courseTitleCtrl, "Course Title (e.g. C Programming)"),
-            _buildTextField(controller.teacherEmailCtrl, "Teacher Email (e.g. tanvir@gstucse.com)"),
-            _buildTextField(controller.roomCtrl, "Room No (e.g. 302)"),
+            // 2. Course Code (The Main Input)
+            TextField(
+              controller: controller.courseCodeCtrl,
+              onChanged: (value) => controller.onCourseCodeChanged(value),
+              decoration: const InputDecoration(
+                labelText: "Course Code",
+                hintText: "e.g. CSE-101",
+                prefixIcon: Icon(Icons.qr_code, color: Colors.orange),
+                suffixIcon: Icon(Icons.flash_on, color: Colors.orange),
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            // 🪄 Magic Info Display (অটো-ফিল কনফার্মেশন)
+            Obx(() {
+              if (controller.courseTitleCtrl.text.isNotEmpty) {
+                return Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.all(10),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withOpacity(0.3))
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Matched Course:", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      Text(
+                          "${controller.courseTitleCtrl.text}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)
+                      ),
+                      Text(
+                          "Semester: ${controller.selectedSemester.value}",
+                          style: const TextStyle(fontSize: 14, color: Colors.deepOrange)
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox();
+            }),
+
+            const SizedBox(height: 20),
+
+            // 3. Other Fields
+            _buildTextField(controller.teacherEmailCtrl, "Teacher Email", Icons.email),
+            _buildTextField(controller.roomCtrl, "Room No", Icons.room),
 
             const SizedBox(height: 20),
 
@@ -72,7 +108,20 @@ class UpdateRoutineScreen extends StatelessWidget {
     );
   }
 
-  // হেল্পার উইজেট: ড্রপডাউন
+  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TextField(
+        controller: ctrl,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: Colors.grey),
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDropdown(String title, RxString value, List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,26 +140,10 @@ class UpdateRoutineScreen extends StatelessWidget {
             ),
           )),
         ),
-        const SizedBox(height: 15),
       ],
     );
   }
 
-  // হেল্পার উইজেট: টেক্সট ফিল্ড
-  Widget _buildTextField(TextEditingController ctrl, String hint) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: TextField(
-        controller: ctrl,
-        decoration: InputDecoration(
-          labelText: hint,
-          border: const OutlineInputBorder(),
-        ),
-      ),
-    );
-  }
-
-  // হেল্পার উইজেট: টাইম পিকার বাটন
   Widget _buildTimePicker(BuildContext context, String title, Rx<TimeOfDay> time, bool isStart) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +157,7 @@ class UpdateRoutineScreen extends StatelessWidget {
             decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(5)),
             child: Center(
               child: Obx(() => Text(
-                "${time.value.format(context)}",
+                time.value.format(context),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               )),
             ),
