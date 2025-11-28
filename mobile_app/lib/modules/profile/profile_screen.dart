@@ -1,4 +1,6 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\profile\profile_screen.dart
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,9 +56,9 @@ class ProfileScreen extends StatelessWidget {
               Center(
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.blueAccent.withOpacity(0.2),
+                  backgroundColor: Colors.blueAccent.withValues(alpha: 0.2),
                   backgroundImage: (imgUrl != null && imgUrl.isNotEmpty)
-                      ? NetworkImage(imgUrl) // নতুন URL আসলে এখানে অটোমেটিক চেঞ্জ হবে
+                      ? NetworkImage(imgUrl)
                       : null,
                   child: (imgUrl == null || imgUrl.isEmpty)
                       ? Text(
@@ -80,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 10),
               Chip(
                 label: Text(user['role']?.toUpperCase() ?? "STUDENT"),
-                backgroundColor: Colors.blueAccent.withOpacity(0.1),
+                backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                 labelStyle: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
               ),
 
@@ -108,7 +110,39 @@ class ProfileScreen extends StatelessWidget {
                 ),
 
               const SizedBox(height: 40),
+              ListTile(
+                leading: const Icon(Icons.notifications_active, color: Colors.teal),
+                title: const Text("Fix Notifications"),
+                subtitle: const Text("Tap if you are not receiving alerts"),
+                onTap: () async {
+                  // 1. Permission Check
+                  FirebaseMessaging messaging = FirebaseMessaging.instance;
+                  NotificationSettings settings = await messaging.requestPermission();
 
+                  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+                    // 2. Subscribe
+                    await messaging.subscribeToTopic('notices');
+                    Get.snackbar(
+                        "Subscribed! ✅",
+                        "You are now subscribed to 'notices' topic.",
+                        backgroundColor: Colors.green,
+                        colorText: Colors.white
+                    );
+                    if (kDebugMode) {
+                      print("🔔 Manually subscribed to notices");
+                    }
+                  } else {
+                    Get.snackbar(
+                        "Permission Denied ❌",
+                        "Please enable notifications from phone settings.",
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white
+                    );
+                  }
+                },
+              ),
+
+              const Divider(),
               // 🚪 লগআউট বাটন
               SizedBox(
                 width: double.infinity,

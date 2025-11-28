@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import '../../core/services/notification_service.dart';
+import '../staff/staff_dashboard.dart';
 import '../home/dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,25 +18,30 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _initializeApp();
   }
 
-  // 🕵️ চেক করি ইউজার আগে থেকে লগইন করা আছে কিনা
-  void _checkLoginStatus() async {
-    // ২ সেকেন্ড ওয়েট করি (যাতে লোগোটা দেখা যায়)
+  void _initializeApp() async {
+    // 🚀 1. Notification Setup (Non-blocking)
+    // Amra 'await' korbo NA, jate nicher code deri na kore
+    NotificationService().initialize();
+
+    // 2. Wait for Splash Animation (2 seconds)
     await Future.delayed(const Duration(seconds: 2));
 
+    // 3. Login Check
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     String? role = prefs.getString('userRole');
 
     if (token != null && token.isNotEmpty) {
-      Get.offAll(() => const DashboardScreen());
+
+        Get.offAll(() => const DashboardScreen());
     } else {
-      // না থাকলে লগইনে যাও
       Get.offAll(() => LoginScreen());
     }
   }
+  // 🕵️ চেক করি ইউজার আগে থেকে লগইন করা আছে কিনা
 
   @override
   Widget build(BuildContext context) {
