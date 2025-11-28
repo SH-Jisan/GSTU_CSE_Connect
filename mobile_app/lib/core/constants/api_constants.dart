@@ -22,4 +22,5 @@ class ApiConstants {
   static const String allStudentsEndpoint = "$baseUrl/staff/students";
   static const String materialEndpoint = "$baseUrl/materials";
   static const String courseListEndpoint = "$baseUrl/courses";
+  static const String fcmTokenEndpoint = "$baseUrl/auth/fcm-token";
 }

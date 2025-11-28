@@ -16,6 +16,7 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
 // 🟢 1. SIGNUP Logic
 exports.registerUser = async (req, res) => {
     const { name, email, password, role, student_id, designation} = req.body;
@@ -107,6 +108,7 @@ exports.getUserProfile = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
 // ✏️ Profile Update Function (Deep Debug Mode)
 exports.updateProfile = async (req, res) => {
     const { id, name, designation } = req.body;
@@ -169,5 +171,18 @@ exports.updateProfile = async (req, res) => {
     } catch (err) {
         console.error("❌ SERVER CRASH ERROR:", err.message);
         res.status(500).json({ error: "Server Error: " + err.message });
+    }
+};
+
+// 🔔 FCM Token আপডেট করার ফাংশন
+exports.updateFcmToken = async (req, res) => {
+    const { id, fcm_token } = req.body;
+
+    try {
+        await pool.query("UPDATE users SET fcm_token = $1 WHERE id = $2", [fcm_token, id]);
+        res.json({ message: "Token Updated" });
+    } catch (err) {
+        console.error("Token Update Error:", err);
+        res.status(500).json({ error: "Server Error" });
     }
 };

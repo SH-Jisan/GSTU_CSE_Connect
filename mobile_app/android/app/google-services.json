@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "252737492660",
+    "project_id": "gstu-cse-connect",
+    "storage_bucket": "gstu-cse-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:252737492660:android:fdddc6d967efbe480129e1",
+        "android_client_info": {
+          "package_name": "com.example.mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnCRBm62cJSdfweh5dwEFMTpJM-_uIFkE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

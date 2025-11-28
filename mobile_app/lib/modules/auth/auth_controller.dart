@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gstu_cse/core/services/notification_service.dart';
 import 'package:http/http.dart' as http;
 import '../../core/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +73,8 @@ class AuthController extends GetxController {
           await prefs.setString('userEmail' , userEmail);
           await prefs.setString('userRole', userRole); //role save korlam
           await prefs.setInt('userId', userId);
+          NotificationService().initialize();
+          print("💾 Login Successful. Saved ID: ${user['id']}");
 
           print("💾 Saved ID to Prefs: ${prefs.getInt('userId')}");
 

@@ -7,6 +7,8 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+const admin = require('../config/firebaseConfig');
+
 // সব নোটিস পাওয়ার ফাংশন
 exports.getAllNotices = async (req, res) => {
     try {
@@ -22,17 +24,26 @@ exports.getAllNotices = async (req, res) => {
 // 🆕 নোটিস তৈরি করার ফাংশন
 exports.addNotice = async (req, res) => {
     const { title, description, category, uploaded_by } = req.body;
-
+    const newNotice = await pool.query(
+                "INSERT INTO notices (title, description, category, uploaded_by) VALUES ($1, $2, $3, $4) RETURNING *",
+                [title, description, category, uploaded_by]
+    );
     try {
-        const newNotice = await pool.query(
-            "INSERT INTO notices (title, description, category, uploaded_by) VALUES ($1, $2, $3, $4) RETURNING *",
-            [title, description, category, uploaded_by]
-        );
-        res.json(newNotice.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ error: "Server Error" });
-    }
+                const message = {
+                    notification: {
+                        title: `New Notice: ${title}`,
+                        body: description.substring(0, 100) + "...", // ছোট প্রিভিউ
+                    },
+                    topic: 'notices' // যারা এই টপিকে আছে সবাই পাবে
+                };
+
+                await admin.messaging().send(message);
+                console.log("🔔 Notification Sent Successfully!");
+            } catch (notifError) {
+                console.error("❌ Notification Failed:", notifError);
+            }
+
+            res.json(newNotice.rows[0]);
 };
 
 
