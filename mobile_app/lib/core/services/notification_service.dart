@@ -9,39 +9,70 @@ class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  // 🚀 ইনিশিয়ালাইজেশন
   Future<void> initialize() async {
-    // ১. পারমিশন চাওয়া
+    // 1. Permission Request
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
+      provisional: false,
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       print('🔔 User granted permission');
 
-      // ২. টোকেন নেওয়া এবং সার্ভারে পাঠানো
+      // 2. Setup Local Notifications (Android)
+      const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher'); // অ্যাপ আইকন
+
+      const InitializationSettings initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+      );
+
+      await _localNotifications.initialize(initializationSettings);
+
+      // 3. Token & Subscribe
       String? token = await _firebaseMessaging.getToken();
       if (token != null) {
         print("🔥 FCM Token: $token");
         _saveTokenToBackend(token);
         await _firebaseMessaging.subscribeToTopic('notices');
-        print("🔔 Subscribed to 'notices' topic");
       }
 
-      // ৩. ফোরগ্রাউন্ড নোটিফিকেশন সেটআপ (অ্যাপ খোলা থাকলে যাতে পপ-আপ আসে)
+      // 4. Foreground Message Listener
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print("☀️ Foreground Message: ${message.notification?.title}");
         _showForegroundNotification(message);
       });
     }
   }
 
-  // 💾 সার্ভারে টোকেন সেভ করা
+  void _showForegroundNotification(RemoteMessage message) async {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+
+    if (notification != null && android != null) {
+      await _localNotifications.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel', // id
+            'High Importance Notifications', // name
+            channelDescription: 'This channel is used for important notifications.',
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _saveTokenToBackend(String token) async {
     final prefs = await SharedPreferences.getInstance();
     int? userId = prefs.getInt('userId');
-
     if (userId != null) {
       try {
         await http.put(
@@ -49,28 +80,9 @@ class NotificationService {
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({"id": userId, "fcm_token": token}),
         );
-        print("✅ FCM Token Saved to Backend");
       } catch (e) {
-        print("❌ Token Save Error: $e");
+        print("Token Save Error: $e");
       }
     }
-  }
-
-  // 🔔 অ্যাপ খোলা অবস্থায় নোটিফিকেশন দেখানো
-  void _showForegroundNotification(RemoteMessage message) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'high_importance_channel', // id
-      'High Importance Notifications', // name
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-
-    await _localNotifications.show(
-      0,
-      message.notification?.title,
-      message.notification?.body,
-      platformDetails,
-    );
   }
 }

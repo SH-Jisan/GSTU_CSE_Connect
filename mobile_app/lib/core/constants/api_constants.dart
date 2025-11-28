@@ -1,10 +1,10 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\core\constants\api_constants.dart
 class ApiConstants {
   // ⚠️ ইমুলেটর ব্যবহার করলে: 10.0.2.2
-  static const String baseUrl = "http://10.0.2.2:3000/api";
+  //static const String baseUrl = "http://10.0.2.2:3000/api";
 
   // ⚠️ রিয়েল ফোন ব্যবহার করলে:
-  //static const String baseUrl = "https://gstucse-api.onrender.com/api";
+  static const String baseUrl = "https://gstucse-api.onrender.com/api";
 
   static const String loginEndpoint = "$baseUrl/auth/login";
   static const String signupEndpoint = "$baseUrl/auth/signup";
