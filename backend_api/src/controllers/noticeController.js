@@ -24,26 +24,54 @@ exports.getAllNotices = async (req, res) => {
 // 🆕 নোটিস তৈরি করার ফাংশন
 exports.addNotice = async (req, res) => {
     const { title, description, category, uploaded_by } = req.body;
-    const newNotice = await pool.query(
-                "INSERT INTO notices (title, description, category, uploaded_by) VALUES ($1, $2, $3, $4) RETURNING *",
-                [title, description, category, uploaded_by]
-    );
+
+    console.log("------------------------------------------------");
+    console.log("📥 REQUEST RECEIVED: Add Notice");
+    console.log(`📝 Title: ${title}, By User ID: ${uploaded_by}`);
+
     try {
-                const message = {
-                    notification: {
-                        title: `New Notice: ${title}`,
-                        body: description.substring(0, 100) + "...", // ছোট প্রিভিউ
-                    },
-                    topic: 'notices' // যারা এই টপিকে আছে সবাই পাবে
-                };
+        // 1. Database Insert
+        console.log("💾 Inserting into Database...");
+        const newNotice = await pool.query(
+            "INSERT INTO notices (title, description, category, uploaded_by) VALUES ($1, $2, $3, $4) RETURNING *",
+            [title, description, category, uploaded_by]
+        );
+        console.log("✅ Database Insert Success! ID:", newNotice.rows[0].id);
 
-                await admin.messaging().send(message);
-                console.log("🔔 Notification Sent Successfully!");
-            } catch (notifError) {
-                console.error("❌ Notification Failed:", notifError);
-            }
+        // 2. Notification Logic
+        console.log("🔔 Preparing Notification Payload...");
+        try {
+            // টপিক চেক (স্ট্রিং হতে হবে)
+            const topicName = 'notices';
 
-            res.json(newNotice.rows[0]);
+            const message = {
+                notification: {
+                    title: `New Notice: ${title}`,
+                    body: description ? description.substring(0, 50) + "..." : "Check app for details",
+                },
+                topic: topicName
+            };
+
+            console.log("🚀 Sending to Firebase Topic:", topicName);
+
+            // ফায়ারবেস সেন্ড কমান্ড
+            const response = await admin.messaging().send(message);
+
+            console.log("✅ FIREBASE SUCCESS! Response:", response);
+
+        } catch (notifError) {
+            console.error("❌ FIREBASE ERROR:", notifError);
+            // এখানে আমরা থামব না, রেসপন্স পাঠিয়ে দেব
+        }
+
+        // 3. Response Send
+        console.log("📤 Sending Response to Client");
+        res.json(newNotice.rows[0]);
+
+    } catch (err) {
+        console.error("❌ CRITICAL SERVER ERROR:", err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
 };
 
 
