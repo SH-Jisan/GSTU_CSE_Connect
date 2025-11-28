@@ -46,7 +46,7 @@ exports.rejectUser = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
     try {
         const result = await pool.query(
-            "SELECT id, name, email, student_id, session, avatar_url FROM users WHERE role = 'student' ORDER BY student_id ASC"
+            "SELECT id, name, email, student_id, session, current_year, current_semester, avatar_url FROM users WHERE role = 'student' ORDER BY student_id ASC"
         );
         res.json(result.rows);
     } catch (err) {

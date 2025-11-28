@@ -3,10 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'profile_controller.dart';
+import "../student/controllers/batch_controller.dart";
+
 
 class EditProfileSheet extends StatelessWidget {
   final ProfileController controller = Get.find();
-
+  final BatchController batchCtrl = Get.put(BatchController());
   // আগের ডাটা দিয়ে ফর্ম ফিলাপ করার জন্য কন্ট্রোলার
   final TextEditingController nameCtrl;
   final TextEditingController desigCtrl;
@@ -87,6 +89,45 @@ class EditProfileSheet extends StatelessWidget {
             ),
             const SizedBox(height: 15),
 
+            const Divider(),
+            const Text("Academic Info (Update Batch)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            const SizedBox(height: 10),
+
+            Row(
+              children:[
+                Expanded(
+                  child: Obx(() => _buildDropdown("Year", batchCtrl.selectedYear,
+                      ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduated'])),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Obx(() => batchCtrl.selectedYear.value == 'Graduated'
+                      ? const SizedBox()
+                      : _buildDropdown("Semester", batchCtrl.selectedSemester,
+                      ['1st Semester', '2nd Semester'])),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: Obx(() => batchCtrl.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : OutlinedButton.icon(
+                onPressed: () => batchCtrl.updateBatchStatus(),
+                icon: const Icon(Icons.upgrade),
+                label: const Text("Update Semester Status"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.indigo,
+                  side: const BorderSide(color: Colors.indigo),
+                ),
+              ),
+              ),
+            ),
+            const SizedBox(height: 10,),
+            const Divider(),
+            const SizedBox(height: 10),
+
             // 📝 Designation Field (শুধুমাত্র স্টাফ/টিচারদের জন্য জরুরি)
             TextField(
               controller: desigCtrl,
@@ -119,6 +160,20 @@ class EditProfileSheet extends StatelessWidget {
             ),
             const SizedBox(height: 20), // কি-বোর্ডের জন্য জায়গা
           ],
+        ),
+      ),
+    );
+  }
+  Widget _buildDropdown(String title, RxString value, List<String> items) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(10)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value.value,
+          isExpanded: true,
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          onChanged: (val) => value.value = val!,
         ),
       ),
     );

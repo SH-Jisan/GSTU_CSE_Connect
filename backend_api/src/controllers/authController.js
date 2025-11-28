@@ -19,7 +19,7 @@ cloudinary.config({
 
 // 🟢 1. SIGNUP Logic
 exports.registerUser = async (req, res) => {
-    const { name, email, password, role, student_id, designation} = req.body;
+    const { name, email, password, role, student_id, designation, session} = req.body;
 
     try {
         // ১. চেক করি ইউজার আগে থেকেই আছে কিনা
@@ -32,12 +32,30 @@ exports.registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+         let assignedYear = '1st Year';
+         let assignedSemester = '1st Semester';
+         if (role === 'student' && session) {
+                     // Database e check kori ey session er onno kew ache kina
+                     const batchCheck = await pool.query(
+                         "SELECT current_year, current_semester FROM users WHERE session = $1 AND role = 'student' LIMIT 1",
+                         [session]
+                     );
+
+                     if (batchCheck.rows.length > 0) {
+                         // Batchmate pawa gese! Tader year/sem copy koro
+                         assignedYear = batchCheck.rows[0].current_year || '1st Year';
+                         assignedSemester = batchCheck.rows[0].current_semester || '1st Semester';
+                         console.log(`🔄 Auto-syncing new student to: ${assignedYear}, ${assignedSemester}`);
+                     }
+                 }
         // ৩. ডাটাবেসে সেভ করা (ডিফল্টভাবে is_approved = false থাকবে)
         const newUser = await pool.query(
-                    `INSERT INTO users (name, email, password_hash, role, student_id, designation, is_approved)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-                    [name, email, hashedPassword, role, student_id, designation, false] // <--- Force FALSE
+                    `INSERT INTO users (name, email, password_hash, role, student_id, session, designation, is_approved, current_year, current_semester)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+                    [name, email, hashedPassword, role, student_id, session, designation, false, assignedYear, assignedSemester]
                 );
+
+
 
         res.status(201).json({
             message: 'Registration successful! Please wait for Admin approval.',
@@ -93,7 +111,7 @@ exports.getUserProfile = async (req, res) => {
     try {
         // পাসওয়ার্ড ছাড়া বাকি সব তথ্য দাও
         const user = await pool.query(
-            'SELECT id, name, email, role, student_id, session, designation, is_cr, avatar_url FROM users WHERE email = $1',
+            'SELECT id, name, email, role, student_id, session, designation, is_cr, current_year, current_semester, avatar_url FROM users WHERE email = $1',
             [email]
         );
 
