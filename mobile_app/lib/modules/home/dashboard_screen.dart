@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../material/screens/public_course_list_screen.dart';
+import 'about_app_screen.dart';
 import 'dashboard_controller.dart';
 import 'home_screen.dart';
 import '../routine/routine_screen.dart';
@@ -143,7 +144,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               leading: const Icon(Icons.info),
               title: const Text('About App'),
-              onTap: () {},
+              onTap: (){
+                Get.back();
+                Get.to(() => const AboutAppScreen());
+              },
             ),
           ],
         ),
