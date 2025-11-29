@@ -1,11 +1,9 @@
-//D:\app_dev\GSTU_CSE_Connect\backend_api\src\controllers\authController.js
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 
-// ডাটাবেস কানেকশন (SSL সহ)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -17,48 +15,45 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// 🟢 1. SIGNUP Logic
+// 🟢 1. SIGNUP Logic (Updated: Added Phone)
 exports.registerUser = async (req, res) => {
-    const { name, email, password, role, student_id, designation, session} = req.body;
+    // ⚠️ Phone রিসিভ করছি
+    const { name, email, password, role, student_id, designation, session, phone } = req.body;
 
     try {
-        // ১. চেক করি ইউজার আগে থেকেই আছে কিনা
         const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json({ error: 'User already exists!' });
         }
 
-        // ২. পাসওয়ার্ড এনক্রিপ্ট (Hash) করা
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-         let assignedYear = '1st Year';
-         let assignedSemester = '1st Semester';
-         if (role === 'student' && session) {
-                     // Database e check kori ey session er onno kew ache kina
-                     const batchCheck = await pool.query(
-                         "SELECT current_year, current_semester FROM users WHERE session = $1 AND role = 'student' LIMIT 1",
-                         [session]
-                     );
+        let assignedYear = '1st Year';
+        let assignedSemester = '1st Semester';
 
-                     if (batchCheck.rows.length > 0) {
-                         // Batchmate pawa gese! Tader year/sem copy koro
-                         assignedYear = batchCheck.rows[0].current_year || '1st Year';
-                         assignedSemester = batchCheck.rows[0].current_semester || '1st Semester';
-                         console.log(`🔄 Auto-syncing new student to: ${assignedYear}, ${assignedSemester}`);
-                     }
-                 }
-        // ৩. ডাটাবেসে সেভ করা (ডিফল্টভাবে is_approved = false থাকবে)
+        if (role === 'student' && session) {
+            const batchCheck = await pool.query(
+                "SELECT current_year, current_semester FROM users WHERE session = $1 AND role = 'student' LIMIT 1",
+                [session]
+            );
+
+            if (batchCheck.rows.length > 0) {
+                assignedYear = batchCheck.rows[0].current_year || '1st Year';
+                assignedSemester = batchCheck.rows[0].current_semester || '1st Semester';
+                console.log(`🔄 Auto-syncing new student to: ${assignedYear}, ${assignedSemester}`);
+            }
+        }
+
+        // ⚠️ Insert Query: phone এবং is_phone_public (Default false) যোগ করা হলো
         const newUser = await pool.query(
-                    `INSERT INTO users (name, email, password_hash, role, student_id, session, designation, is_approved, current_year, current_semester)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-                    [name, email, hashedPassword, role, student_id, session, designation, false, assignedYear, assignedSemester]
-                );
-
-
+            `INSERT INTO users (name, email, password_hash, role, student_id, session, designation, phone, is_phone_public, is_approved, current_year, current_semester)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+            [name, email, hashedPassword, role, student_id, session, designation, phone, false, false, assignedYear, assignedSemester]
+        );
 
         res.status(201).json({
-            message: 'Registration successful! Please wait for Admin approval.',
+            message: 'Registration successful! Please wait for Staff approval.',
             user: newUser.rows[0]
         });
 
@@ -73,26 +68,23 @@ exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // ১. ইউজার খোঁজা
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (user.rows.length === 0) {
             return res.status(400).json({ error: 'Invalid Email or Password' });
         }
 
-        // ২. পাসওয়ার্ড মেলানো
         const validPassword = await bcrypt.compare(password, user.rows[0].password_hash);
+        if (!validPassword) {
+            return res.status(400).json({ error: 'Invalid Email or Password' });
+        }
 
         if (user.rows[0].is_approved === false) {
-                    return res.status(403).json({ error: 'Account Pending! Please wait for Staff approval.' });
-                }
+            return res.status(403).json({ error: 'Account Pending! Please wait for Staff approval.' });
+        }
 
-
-
-
-        // ৪. টোকেন জেনারেট করা (এটি দিয়ে অ্যাপ ইউজারকে চিনবে)
         const token = jwt.sign(
             { id: user.rows[0].id, role: user.rows[0].role },
-            'SECRET_KEY_123', // বাস্তবে এটা .env ফাইলে রাখতে হয়
+            'SECRET_KEY_123',
             { expiresIn: '7d' }
         );
 
@@ -104,14 +96,13 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-// 🟡 3. GET PROFILE Logic
+// 🟡 3. GET PROFILE Logic (Updated)
 exports.getUserProfile = async (req, res) => {
-    const { email } = req.body; // অ্যাপ থেকে ইমেইল আসবে
-
+    const { email } = req.body;
     try {
-        // পাসওয়ার্ড ছাড়া বাকি সব তথ্য দাও
+        // ⚠️ Phone এবং Privacy Info আনা হচ্ছে
         const user = await pool.query(
-            'SELECT id, name, email, role, student_id, session, designation, is_cr, current_year, current_semester, avatar_url FROM users WHERE email = $1',
+            'SELECT id, name, email, role, student_id, session, designation, is_cr, current_year, current_semester, avatar_url, phone, is_phone_public FROM users WHERE email = $1',
             [email]
         );
 
@@ -127,63 +118,64 @@ exports.getUserProfile = async (req, res) => {
     }
 };
 
-// ✏️ Profile Update Function (Deep Debug Mode)
+// ✏️ Profile Update Function (Updated)
 exports.updateProfile = async (req, res) => {
-    const { id, name, designation } = req.body;
+    // ⚠️ Phone এবং is_phone_public রিসিভ করছি
+    const { id, name, designation, phone, is_phone_public } = req.body;
     let image_base64 = req.body.image_base64;
 
     console.log("------------------------------------------------");
     console.log("📥 PROFILE UPDATE REQUEST RECEIVED");
     console.log("🆔 User ID:", id);
-    console.log("📝 Text Data:", { name, designation });
-
-    // ইমেজ আসছে কিনা চেক
-    if (image_base64) {
-        console.log("📸 Image Base64 Length:", image_base64.length);
-        console.log("📸 Image Preview:", image_base64.substring(0, 30) + "...");
-    } else {
-        console.log("⚠️ No Image Data Received from App!");
-    }
+    console.log("📝 Text Data:", { name, designation, phone, is_phone_public });
 
     try {
-        let avatar_url = req.body.avatar_url; // আগের URL (যদি থাকে)
+        let avatar_url = req.body.avatar_url;
 
-        // 1. Cloudinary Upload Attempt
         if (image_base64) {
-            console.log("☁️ Attempting Cloudinary Upload...");
+            console.log("📸 Uploading image...");
             try {
                 const uploadRes = await cloudinary.uploader.upload(image_base64, {
                     upload_preset: 'ml_default',
                     folder: 'gstu_cse_profiles'
                 });
-
-                if (uploadRes && uploadRes.secure_url) {
-                    avatar_url = uploadRes.secure_url;
-                    console.log("✅ Cloudinary Success! New URL:", avatar_url);
-                } else {
-                    console.log("❌ Cloudinary Uploaded but returned no URL.");
-                }
+                avatar_url = uploadRes.secure_url;
+                console.log("✅ Cloudinary URL:", avatar_url);
             } catch (cloudErr) {
-                console.error("❌ CLOUDINARY UPLOAD FAILED:", cloudErr);
-                // আমরা এখানে থামব না, দেখব কেন ফেইল হলো
+                console.error("❌ Cloudinary Error:", cloudErr);
             }
         }
 
-        // 2. Database Update Attempt
-        console.log("💾 Updating Database with URL:", avatar_url);
+        // ⚠️ Dynamic Query Update
+        let query = "UPDATE users SET name = $1, designation = $2, phone = $3";
+        let params = [name, designation, phone];
+        let paramIndex = 4;
 
-        // ডাইনামিক কুয়েরি (যাতে ভুল না হয়)
-        const update = await pool.query(
-            "UPDATE users SET name = $1, designation = $2, avatar_url = $3 WHERE id = $4 RETURNING *",
-            [name, designation, avatar_url, id]
-        );
+        // Privacy টগল আপডেট (যদি পাঠানো হয়)
+        if (is_phone_public !== undefined) {
+            query += `, is_phone_public = $${paramIndex}`;
+            params.push(is_phone_public);
+            paramIndex++;
+        }
+
+        if (avatar_url) {
+            query += `, avatar_url = $${paramIndex}`;
+            params.push(avatar_url);
+            paramIndex++;
+        }
+
+        query += ` WHERE id = $${paramIndex} RETURNING *`;
+        params.push(id);
+
+        console.log("💾 Executing DB Query:", query);
+
+        const update = await pool.query(query, params);
 
         if (update.rows.length === 0) {
-            console.log("❌ DB Error: User ID not found during update.");
             return res.status(404).json({ error: "User not found" });
         }
 
-        console.log("✅ Database Updated. Returning User:", update.rows[0]);
+        console.log("✅ Database Updated.");
         res.json({ message: "Profile Updated", user: update.rows[0] });
 
     } catch (err) {
@@ -192,10 +184,9 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-// 🔔 FCM Token আপডেট করার ফাংশন
+// 🔔 FCM Token Update
 exports.updateFcmToken = async (req, res) => {
     const { id, fcm_token } = req.body;
-
     try {
         await pool.query("UPDATE users SET fcm_token = $1 WHERE id = $2", [fcm_token, id]);
         res.json({ message: "Token Updated" });

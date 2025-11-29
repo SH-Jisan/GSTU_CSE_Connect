@@ -1,4 +1,3 @@
-//D:\app_dev\GSTU_CSE_Connect\backend_api\src\controllers\staffController.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -10,7 +9,6 @@ const pool = new Pool({
 // ১. সব পেন্ডিং রিকোয়েস্ট দেখার ফাংশন
 exports.getPendingUsers = async (req, res) => {
     try {
-        // যারা approved না, তাদের লিস্ট দাও
         const result = await pool.query("SELECT id, name, email, role, student_id, designation, created_at FROM users WHERE is_approved = false ORDER BY created_at DESC");
         res.json(result.rows);
     } catch (err) {
@@ -21,7 +19,7 @@ exports.getPendingUsers = async (req, res) => {
 
 // ২. ইউজার অ্যাপ্রুভ করার ফাংশন
 exports.approveUser = async (req, res) => {
-    const { id } = req.body; // যাকে অ্যাপ্রুভ করব তার ID
+    const { id } = req.body;
     try {
         await pool.query("UPDATE users SET is_approved = true WHERE id = $1", [id]);
         res.json({ message: "User Approved Successfully!" });
@@ -31,7 +29,7 @@ exports.approveUser = async (req, res) => {
     }
 };
 
-// ৩. ইউজার রিজেক্ট/ডিলিট করার ফাংশন (Optional)
+// ৩. ইউজার রিজেক্ট/ডিলিট করার ফাংশন
 exports.rejectUser = async (req, res) => {
     const { id } = req.body;
     try {
@@ -42,11 +40,12 @@ exports.rejectUser = async (req, res) => {
     }
 };
 
-// 📋 সব স্টুডেন্টের লিস্ট (Search Directory এর জন্য)
+// 📋 সব স্টুডেন্টের লিস্ট (Updated: Added Phone, Privacy & CR)
 exports.getAllStudents = async (req, res) => {
     try {
         const result = await pool.query(
-            "SELECT id, name, email, student_id, session, current_year, current_semester, avatar_url FROM users WHERE role = 'student' ORDER BY student_id ASC"
+            // ⚠️ এই লাইনটি আপডেট করা হলো: phone, is_phone_public, is_cr যোগ করা হলো
+            "SELECT id, name, email, student_id, session, current_year, current_semester, avatar_url, phone, is_phone_public, is_cr FROM users WHERE role = 'student' ORDER BY student_id ASC"
         );
         res.json(result.rows);
     } catch (err) {
