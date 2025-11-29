@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gstu_cse/modules/teacher/screens/attendance_screen.dart';
 import 'my_classes_screen.dart';
 
 class TeacherDashboard extends StatelessWidget {
@@ -25,6 +26,12 @@ class TeacherDashboard extends StatelessWidget {
                   title: "My Assigned\nClasses",
                   color: Colors.teal,
                   onTap: () => Get.to(() => MyClassesScreen()),
+                ),
+                _buildMenuCard(
+                  icon: Icons.fact_check,
+                  title: "Take\nAttendance",
+                  color: Colors.green,
+                  onTap: () => Get.to(() => AttendanceScreen()),
                 ),
                 _buildMenuCard(
                   icon: Icons.upload_file,
