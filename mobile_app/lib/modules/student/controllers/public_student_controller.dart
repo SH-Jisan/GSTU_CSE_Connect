@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart'; // kDebugMode
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../core/constants/api_constants.dart';
@@ -24,6 +25,12 @@ class PublicStudentController extends GetxController {
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body) as List;
+        // 🕵️ DEBUG PRINT: প্রথম স্টুডেন্টের ডাটা চেক করা
+        if (kDebugMode && data.isNotEmpty) {
+          print("🔍 Sample Student Data from API: ${data[0]}");
+          print("🔍 Checking 'current_year': ${data[0]['current_year']}");
+          print("🔍 Checking 'current_semester': ${data[0]['current_semester']}");
+        }
         allStudents.value = data;
         filteredStudents.value = data;
       }
@@ -61,8 +68,16 @@ class PublicStudentController extends GetxController {
         // যদি ডাটা না থাকে তবে 'Unknown'
         String year = student['current_year'] ?? "Unknown";
         String sem = student['current_semester'] ?? "";
-        groupName = "$year $sem".trim();
-      }
+
+        // Trim kore dekhi
+        String fullTitle = "$year $sem".trim();
+
+        // Jodi Trim korar poreo empty ba just 'Unknown' hoy
+        if(fullTitle.isEmpty || fullTitle == "Unknown") {
+          groupName = "Unknown Year/Semester";
+        } else {
+          groupName = fullTitle;
+        }      }
 
       if (!grouped.containsKey(groupName)) {
         grouped[groupName] = [];
