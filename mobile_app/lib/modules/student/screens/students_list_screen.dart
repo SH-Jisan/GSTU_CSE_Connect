@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../controllers/public_student_controller.dart';
-// স্টুডেন্ট ডিটেইলস পেজটা রিইউজ করব (যেটা স্টাফ ফোল্ডারে আছে)
 import '../../staff/screens/student_detail_screen.dart';
 
 class StudentsListScreen extends StatelessWidget {
   final PublicStudentController controller = Get.put(PublicStudentController());
 
   StudentsListScreen({super.key});
+
+  // 📞 Call/Email Action
+  Future<void> _launchAction(String scheme, String path) async {
+    final Uri launchUri = Uri(scheme: scheme, path: path);
+    try {
+      await launchUrl(launchUri);
+    } catch (e) {
+      Get.snackbar("Error", "Could not perform action");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +30,7 @@ class StudentsListScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // 🔍 Search Bar
+          // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.indigo,
@@ -39,7 +49,7 @@ class StudentsListScreen extends StatelessWidget {
             ),
           ),
 
-          // 📋 Grouped List
+          // List
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
@@ -48,9 +58,6 @@ class StudentsListScreen extends StatelessWidget {
 
               var grouped = controller.groupedStudents;
               var groupKeys = grouped.keys.toList();
-
-              // গ্রাজুয়েটেড বা সিনিয়রিটি অনুযায়ী সর্ট করার লজিক এখানে চাইলে দেওয়া যায়
-              // আপাতত ডিফল্ট অর্ডারে দেখাচ্ছি
 
               return ListView.builder(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -64,38 +71,30 @@ class StudentsListScreen extends StatelessWidget {
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     child: ExpansionTile(
-                      // 📂 Header: Semester Name
-                      title: Text(
-                          groupName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)
-                      ),
-                      leading: Icon(
-                          groupName.contains("Graduated") ? Icons.school : Icons.folder,
-                          color: groupName.contains("Graduated") ? Colors.orange : Colors.indigo
-                      ),
+                      title: Text(groupName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                      leading: Icon(groupName.contains("Graduated") ? Icons.school : Icons.folder, color: Colors.indigo),
                       children: students.map((student) {
-                        bool isCR = student['is_cr'] == true; // CR Check
+
+                        // 🛠️ Logic: Handle Boolean/String/Null safely
+                        bool isCR = student['is_cr'] == true || student['is_cr'].toString() == 'true';
+
+                        var publicStatus = student['is_phone_public'];
+                        bool isPhonePublic = publicStatus == true || publicStatus.toString() == 'true';
+
+                        String phone = student['phone'] ?? "";
+                        String email = student['email'] ?? "";
 
                         return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                           leading: CircleAvatar(
                             backgroundColor: Colors.indigo.withOpacity(0.1),
-                            backgroundImage: (student['avatar_url'] != null)
-                                ? NetworkImage(student['avatar_url'])
-                                : null,
-                            child: (student['avatar_url'] == null)
-                                ? Text(student['name'][0].toString().toUpperCase())
-                                : null,
+                            backgroundImage: (student['avatar_url'] != null) ? NetworkImage(student['avatar_url']) : null,
+                            child: (student['avatar_url'] == null) ? Text(student['name'][0].toString().toUpperCase()) : null,
                           ),
                           title: Row(
                             children: [
-                              Flexible(
-                                  child: Text(
-                                    student['name'],
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                    overflow: TextOverflow.ellipsis,
-                                  )
-                              ),
+                              Flexible(child: Text(student['name'], style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+
                               // 🌟 CR Badge
                               if (isCR)
                                 Container(
@@ -107,8 +106,28 @@ class StudentsListScreen extends StatelessWidget {
                             ],
                           ),
                           subtitle: Text("ID: ${student['student_id'] ?? 'N/A'}"),
+
+                          // 📞 Action Buttons
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Email Button (Always visible)
+                              if (email.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.email, color: Colors.blueAccent),
+                                  onPressed: () => _launchAction('mailto', email),
+                                ),
+
+                              // Call Button (Conditional)
+                              if (isPhonePublic && phone.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(Icons.phone, color: Colors.green),
+                                  onPressed: () => _launchAction('tel', phone),
+                                ),
+                            ],
+                          ),
                           onTap: () {
-                            // ডিটেইলস পেজে নিয়ে যাওয়া
+                            FocusScope.of(context).unfocus();
                             Get.to(() => StudentDetailScreen(student: student));
                           },
                         );

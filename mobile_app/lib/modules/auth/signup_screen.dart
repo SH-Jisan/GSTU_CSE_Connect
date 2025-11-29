@@ -1,4 +1,3 @@
-//D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\auth\signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -55,15 +54,21 @@ class SignUpScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // 2. Common Fields (Name, Email, Pass)
+              // 2. Common Fields
               _buildTextField(controller.nameController, "Full Name", Icons.person),
               const SizedBox(height: 15),
+
               _buildTextField(controller.emailController, "Email Address", Icons.email),
               const SizedBox(height: 15),
+
+              // 🆕 Phone Field (Added)
+              _buildTextField(controller.phoneController, "Phone Number", Icons.phone, isNumber: true),
+              const SizedBox(height: 15),
+
               _buildTextField(controller.passwordController, "Password", Icons.lock, isObscure: true),
               const SizedBox(height: 15),
 
-              // 3. Dynamic Fields (Logic based on Role)
+              // 3. Dynamic Fields
               Obx(() {
                 if (controller.selectedRole.value == 'student') {
                   return Column(
@@ -113,11 +118,11 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  // হেল্পার উইজেট (টেক্সট ফিল্ড বানানোর জন্য)
-  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon, {bool isObscure = false}) {
+  Widget _buildTextField(TextEditingController ctrl, String label, IconData icon, {bool isObscure = false, bool isNumber = false}) {
     return TextField(
       controller: ctrl,
       obscureText: isObscure,
+      keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),

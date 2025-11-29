@@ -19,6 +19,7 @@ class SignUpController extends GetxController {
   // স্টুডেন্টদের জন্য স্পেশাল ফিল্ড
   final studentIdController = TextEditingController();
   final sessionController = TextEditingController();
+  final phoneController = TextEditingController();
 
   // টিচার/স্টাফদের জন্য স্পেশাল ফিল্ড
   final designationController = TextEditingController();
@@ -26,7 +27,11 @@ class SignUpController extends GetxController {
   // 📝 রেজিস্ট্রেশন ফাংশন
   Future<void> registerUser() async {
     // বেসিক ভ্যালিডেশন
-    if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
+    if (nameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty||
+        phoneController.text.isEmpty
+    ) {
       Get.snackbar("Error", "All basic fields are required", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -40,6 +45,7 @@ class SignUpController extends GetxController {
         "email": emailController.text.trim(),
         "password": passwordController.text.trim(),
         "role": selectedRole.value,
+        "phone": phoneController.text.trim(),
       };
 
       // যদি স্টুডেন্ট হয়, আইডি আর সেশন যোগ করো
@@ -90,5 +96,6 @@ class SignUpController extends GetxController {
     passwordController.clear();
     studentIdController.clear();
     designationController.clear();
+    phoneController.clear();
   }
 }

@@ -23,16 +23,14 @@ class ProfileScreen extends StatelessWidget {
 
         var user = controller.userData;
 
-        // Safety checks for null values
         bool isStudent = user['role'] == 'student';
         bool isCR = user['is_cr'] == true;
-        // Check if year is 'Graduated' (ensure exact spelling match with what you save)
         bool isGraduated = user['current_year'] == 'Graduated';
 
         return SingleChildScrollView(
           child: Column(
             children: [
-              // 🎨 1. Header Section (Blue Curved Background)
+              // 🎨 1. Header Section
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 60, bottom: 30, left: 20, right: 20),
@@ -46,7 +44,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Avatar Area
+                    // Avatar
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
@@ -59,11 +57,9 @@ class ProfileScreen extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 50,
                             backgroundColor: Colors.white,
-                            // Load image if available, else null
                             backgroundImage: (user['avatar_url'] != null && user['avatar_url'].toString().isNotEmpty)
                                 ? NetworkImage(user['avatar_url'])
                                 : null,
-                            // Show Initials if no image
                             child: (user['avatar_url'] == null || user['avatar_url'].toString().isEmpty)
                                 ? Text(
                               user['name'] != null ? user['name'][0].toString().toUpperCase() : "U",
@@ -72,7 +68,6 @@ class ProfileScreen extends StatelessWidget {
                                 : null,
                           ),
                         ),
-                        // Edit Icon
                         GestureDetector(
                           onTap: () => _openEditSheet(user),
                           child: Container(
@@ -85,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 15),
 
-                    // Name & CR Badge Row
+                    // Name & Role
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -96,13 +91,12 @@ class ProfileScreen extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        // 🌟 CR Badge Logic
                         if (isCR)
                           Container(
                             margin: const EdgeInsets.only(left: 8),
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                                color: Colors.yellow, // CR color
+                                color: Colors.yellow,
                                 borderRadius: BorderRadius.circular(5)
                             ),
                             child: const Text("CR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black)),
@@ -110,10 +104,29 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
 
+                    // Email
                     Text(
                       user['email'] ?? "",
                       style: const TextStyle(color: Colors.white70, fontSize: 14),
                     ),
+
+                    // 🆕 Phone Number Display
+                    if (user['phone'] != null && user['phone'].toString().isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.phone, color: Colors.white70, size: 14),
+                            const SizedBox(width: 5),
+                            Text(
+                              user['phone'],
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     const SizedBox(height: 10),
 
                     // ID or Designation Chip
@@ -134,12 +147,11 @@ class ProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // 🎓 2. Academic Info Cards (Only for Students)
+              // 🎓 2. Academic Info Cards
               if (isStudent)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: isGraduated
-                  // 🎓 View for Graduated Students
                       ? Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -158,7 +170,6 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   )
-                  // 📚 View for Regular Students
                       : Row(
                     children: [
                       _buildInfoCard(Icons.calendar_month, "Session", user['session'] ?? "N/A", Colors.orange),
@@ -188,7 +199,6 @@ class ProfileScreen extends StatelessWidget {
                       onTap: () => _openEditSheet(user),
                     ),
 
-                    // Notification Fix Tile
                     _buildSettingsTile(
                       icon: Icons.notifications_active_outlined,
                       title: "Fix Notifications",
@@ -209,7 +219,6 @@ class ProfileScreen extends StatelessWidget {
                     const Divider(),
                     const SizedBox(height: 10),
 
-                    // Logout Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -242,6 +251,11 @@ class ProfileScreen extends StatelessWidget {
       EditProfileSheet(
         currentName: user['name'] ?? "",
         currentDesig: user['designation'] ?? "",
+        currentPhone: user['phone'] ?? "",
+        // 🆕 Data pass kora hocche
+        currentYear: user['current_year'],
+        currentSemester: user['current_semester'],
+        role: user['role'] ?? "student",
       ),
       isScrollControlled: true,
     );

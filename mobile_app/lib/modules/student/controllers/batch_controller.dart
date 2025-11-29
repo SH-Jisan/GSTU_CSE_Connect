@@ -3,32 +3,23 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/constants/api_constants.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../profile/profile_controller.dart'; // ⚠️ Import ProfileController
 
 class BatchController extends GetxController {
   var isLoading = false.obs;
 
-  // Selected Values
   var selectedYear = '1st Year'.obs;
   var selectedSemester = '1st Semester'.obs;
 
-  var isCR = false.obs; // User CR kina seta track korbo
-
-  @override
-  void onInit() {
-    loadUserStatus();
-    super.onInit();
-  }
-
-  void loadUserStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Profile API theke 'is_cr' load kora uchit chilo,
-    // tobe amra dhore nicchi login/profile data theke pabo.
-    // Simplicity er jonno amra profile theke data ene ekhane set korbo UI te.
+  // 🆕 Initial Value Set korar function
+  void setInitialValues(String? year, String? semester) {
+    if (year != null && year != "N/A") selectedYear.value = year;
+    if (semester != null && semester != "N/A") selectedSemester.value = semester;
   }
 
   // 🚀 Update Function
-  void updateBatchStatus() async {
+  Future<void> updateBatchStatus() async {
     try {
       isLoading(true);
       final prefs = await SharedPreferences.getInstance();
@@ -45,13 +36,16 @@ class BatchController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        var msg = jsonDecode(response.body)['message'];
-        Get.snackbar("Success 🎉", msg, backgroundColor: Colors.green, colorText: Colors.white);
+        // ✅ Success: Ekhon Profile Refresh korbo
+        if (Get.isRegistered<ProfileController>()) {
+          Get.find<ProfileController>().fetchProfile();
+        }
+        // User ke alada snackbar dewar dorkar nai jodi amra 'Save Edits' button e kaj kori
       } else {
-        Get.snackbar("Error", "Update failed");
+        Get.snackbar("Error", "Batch update failed");
       }
     } catch (e) {
-      Get.snackbar("Error", "Connection error");
+      Get.snackbar("Error", "Connection error in batch update");
     } finally {
       isLoading(false);
     }
