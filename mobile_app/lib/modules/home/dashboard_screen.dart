@@ -10,6 +10,7 @@ import '../result/result_screen.dart';
 import '../profile/profile_screen.dart';
 import '../staff/staff_dashboard.dart'; // স্টাফ প্যানেল ইম্পোর্ট
 import '../teacher/teacher_list_screen.dart';
+import '../student/screens/students_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -84,6 +85,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: (){
                 Get.back();
                 Get.to(() => TeacherListScreen());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups, color: Colors.indigo), // আইকন চেঞ্জ করলাম
+              title: const Text('Students Directory'),
+              onTap: () {
+                Get.back();
+                Get.to(() => StudentsListScreen());
               },
             ),
             ListTile(
