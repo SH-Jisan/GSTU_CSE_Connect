@@ -5,10 +5,12 @@ const {
     getRoutine,
     toggleClassStatus,
     addRoutine,
+    getRoutineByTeacher,
 } = require('../controllers/routineController');
 
 router.get('/', getRoutine);
 router.post('/cancel', toggleClassStatus);
 router.post('/add', addRoutine);
+router.get('/teacher/:teacherId', getRoutineByTeacher);
 
 module.exports = router;

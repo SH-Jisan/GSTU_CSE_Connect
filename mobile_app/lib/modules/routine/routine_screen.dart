@@ -107,21 +107,6 @@ class RoutineScreen extends StatelessWidget {
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
                       ),
                     ),
-
-                    // ❌ Teacher Cancel Button (যদি টিচার হয়)
-                    Obx(() {
-                      if (controller.userRole.value == 'teacher') {
-                        return InkWell(
-                          onTap: () => controller.toggleClassStatus(routine['id']),
-                          child: Icon(
-                            isCancelled ? Icons.restore : Icons.cancel,
-                            color: isCancelled ? Colors.green : Colors.red,
-                            size: 20,
-                          ),
-                        );
-                      }
-                      return const SizedBox();
-                    }),
                   ],
                 ),
                 const SizedBox(height: 5),

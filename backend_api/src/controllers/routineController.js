@@ -89,3 +89,31 @@ exports.addRoutine = async (req, res) => {
         res.status(500).json({ error: "Server Error" });
     }
 };
+
+exports.getRoutineByTeacher = async (req, res) => {
+    const { teacherId } = req.params; // URL থেকে ID নেবো
+
+    try {
+        const query = `
+            SELECT routines.*, users.name as teacher_name 
+            FROM routines 
+            JOIN users ON routines.teacher_id = users.id 
+            WHERE routines.teacher_id = $1
+            ORDER BY 
+                CASE 
+                    WHEN day = 'Sunday' THEN 1
+                    WHEN day = 'Monday' THEN 2
+                    WHEN day = 'Tuesday' THEN 3
+                    WHEN day = 'Wednesday' THEN 4
+                    WHEN day = 'Thursday' THEN 5
+                    ELSE 6
+                END, 
+                start_time ASC;
+        `;
+        const result = await pool.query(query, [teacherId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Server Error" });
+    }
+};

@@ -9,11 +9,14 @@ import '../routine/routine_screen.dart';
 import '../result/result_screen.dart';
 import '../profile/profile_screen.dart';
 import '../staff/staff_dashboard.dart'; // স্টাফ প্যানেল ইম্পোর্ট
-import '../teacher/teacher_list_screen.dart';
+import '../teacher/screens/teacher_list_screen.dart';
 import '../student/screens/students_list_screen.dart';
+import '../teacher/screens/teacher_dashboard.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -27,6 +30,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _loadUserRole();
+  }
+  List<BottomNavigationBarItem> _getBottomNavItems(String role) {
+    if (role == 'staff') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Routine'),
+        BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ];
+    } else if (role == 'teacher') {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Routine'),
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Panel'), // ⚠️ Teacher Panel Icon
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ];
+    } else {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Routine'),
+        BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Result'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ];
+    }
   }
 
   // 🕵️ রোল চেক করা
@@ -54,6 +81,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ResultScreen(),       // স্টুডেন্টরা রেজাল্ট দেখবে
       ProfileScreen(),
     ];
+
+    List<Widget> teacherPages = [
+      HomeScreen(),
+      RoutineScreen(),
+      const TeacherDashboard(), // ⚠️ Result এর বদলে Teacher Panel
+      ProfileScreen(),
+    ];
+
 
     return Scaffold(
       // AppBar ড্যাশবোর্ড থেকে সরিয়ে দিলাম, কারণ একেক পেজের টাইটেল একেক রকম হতে পারে
@@ -116,7 +151,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       body: Obx(() => IndexedStack(
         index: controller.tabIndex.value,
-        children: userRole == 'staff' ? staffPages : studentPages,
+        // লজিক: স্টাফ হলে staffPages, টিচার হলে teacherPages, বাকিরা studentPages
+        children: userRole == 'staff' ? staffPages
+            : userRole == 'teacher' ? teacherPages
+            : studentPages,
       )),
 
       bottomNavigationBar: Obx(() => BottomNavigationBar(
@@ -126,19 +164,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         selectedItemColor: userRole == 'staff' ? Colors.indigo : Colors.blueAccent,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        items: userRole == 'staff'
-            ? const [ // 🛡️ স্টাফ মেনু
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Routine'),
-          BottomNavigationBarItem(icon: Icon(Icons.admin_panel_settings), label: 'Admin'), // Result এর বদলে Admin
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ]
-            : const [ // 🎓 স্টুডেন্ট মেনু
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Routine'),
-          BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Result'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        items: _getBottomNavItems(userRole),
       )),
     );
   }

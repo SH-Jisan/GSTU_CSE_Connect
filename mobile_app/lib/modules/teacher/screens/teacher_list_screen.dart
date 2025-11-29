@@ -1,7 +1,7 @@
 //D:\app_dev\GSTU_CSE_Connect\mobile_app\lib\modules\teacher\teacher_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'teacher_controller.dart';
+import '../controllers/teacher_controller.dart';
 
 class TeacherListScreen extends StatelessWidget {
   final TeacherController controller = Get.put(TeacherController());
