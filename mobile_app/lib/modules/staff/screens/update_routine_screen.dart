@@ -16,14 +16,14 @@ class UpdateRoutineScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Day Dropdown (এটা রাখা দরকার)
+            // 1. Day Dropdown
             _buildDropdown("Select Day", controller.selectedDay, [
               'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'
             ]),
 
             const SizedBox(height: 15),
 
-            // 2. Course Code (The Main Input)
+            // 2. Course Code (Main Input)
             TextField(
               controller: controller.courseCodeCtrl,
               onChanged: (value) => controller.onCourseCodeChanged(value),
@@ -36,9 +36,10 @@ class UpdateRoutineScreen extends StatelessWidget {
               ),
             ),
 
-            // 🪄 Magic Info Display (অটো-ফিল কনফার্মেশন)
+            // 🪄 Magic Info Display (Fixed Obx)
             Obx(() {
-              if (controller.courseTitleCtrl.text.isNotEmpty) {
+              // ⚠️ FIX: এখন আমরা .obs ভেরিয়েবল চেক করছি
+              if (controller.isCourseMatched.value) {
                 return Container(
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.all(10),
@@ -53,7 +54,7 @@ class UpdateRoutineScreen extends StatelessWidget {
                     children: [
                       Text("Matched Course:", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                       Text(
-                          "${controller.courseTitleCtrl.text}",
+                          controller.courseTitleCtrl.text,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)
                       ),
                       Text(

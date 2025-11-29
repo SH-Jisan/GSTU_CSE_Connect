@@ -7,8 +7,11 @@ import '../../../core/constants/api_constants.dart';
 class StaffRoutineController extends GetxController {
   var isLoading = false.obs;
 
-  // অটো-ফিলের জন্য সব কোর্সের লিস্ট এখানে রাখব
+  // ⚡ Auto-fill Variables
   var allCourses = <dynamic>[];
+
+  // 🆕 এই ভেরিয়েবলটি Obx এর জন্য জরুরি
+  var isCourseMatched = false.obs;
 
   final courseCodeCtrl = TextEditingController();
   final courseTitleCtrl = TextEditingController();
@@ -22,14 +25,12 @@ class StaffRoutineController extends GetxController {
 
   @override
   void onInit() {
-    fetchCoursesForAutoFill(); // ১. পেজে ঢুকেই কোর্স লিস্ট মুখস্থ করে নেবে
+    fetchCoursesForAutoFill();
     super.onInit();
   }
 
-  // 📥 ব্যাকগ্রাউন্ডে সব কোর্স লোড করা
   void fetchCoursesForAutoFill() async {
     try {
-      // আমরা আগের Course API টাই ব্যবহার করছি
       var response = await http.get(Uri.parse("${ApiConstants.baseUrl}/courses"));
       if (response.statusCode == 200) {
         allCourses = jsonDecode(response.body);
@@ -39,20 +40,32 @@ class StaffRoutineController extends GetxController {
     }
   }
 
-  // 🪄 জাদুর ফাংশন (Auto-fill Logic)
+  // 🪄 Auto-fill Logic (Updated)
   void onCourseCodeChanged(String code) {
-    // ইউজার যা টাইপ করছে, সেটা দিয়ে লিস্টে খুঁজব
     var matchedCourse = allCourses.firstWhere(
           (course) => course['course_code'].toString().toLowerCase() == code.trim().toLowerCase(),
       orElse: () => null,
     );
 
     if (matchedCourse != null) {
-      // ম্যাচ পেলে টাইটেল এবং সেমিস্টার অটো বসিয়ে দেব
+      // ডাটা পাওয়া গেছে
       courseTitleCtrl.text = matchedCourse['course_title'];
       selectedSemester.value = matchedCourse['semester'];
-      Get.snackbar("Found!", "Course details auto-filled ✨",
-          backgroundColor: Colors.green.withOpacity(0.5), colorText: Colors.white, duration: const Duration(seconds: 1));
+
+      // ⚠️ FIX: Observable আপডেট করা হলো
+      isCourseMatched.value = true;
+
+      Get.snackbar("Found!", "Matched: ${matchedCourse['course_title']}",
+          backgroundColor: Colors.green.withOpacity(0.5),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 1),
+          snackPosition: SnackPosition.TOP,
+          margin: const EdgeInsets.all(10)
+      );
+    } else {
+      // ডাটা না মিললে
+      isCourseMatched.value = false;
+      courseTitleCtrl.clear();
     }
   }
 
@@ -94,9 +107,13 @@ class StaffRoutineController extends GetxController {
 
       if (response.statusCode == 200) {
         Get.snackbar("Success", "Class Added!", backgroundColor: Colors.green, colorText: Colors.white);
+
+        // Reset Everything
         courseCodeCtrl.clear();
         courseTitleCtrl.clear();
         roomCtrl.clear();
+        isCourseMatched.value = false; // Reset status
+
         Get.back();
       } else {
         Get.snackbar("Failed", "Error adding routine", backgroundColor: Colors.orange);
